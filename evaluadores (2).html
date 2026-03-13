@@ -1,0 +1,2446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de Evaluadores Acreditados · SEOS</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Identidad Visual Superintendencia de Salud — Gobierno de Chile */
+  --navy:#0d3460;          /* Azul institucional */
+  --navy-light:#1a5276;    /* Azul hover/acento */
+  --gold:#0080c0;          /* Celeste institucional */
+  --gold-light:#0097d8;    /* Celeste hover */
+  --cream:#f0f4f8;         /* Fondo gris-azulado */
+  --cream-dark:#dce4ed;    /* Bordes suaves */
+  --slate:#2c3e50;
+  --text:#1a252f;
+  --muted:#6c7a89;
+  --white:#ffffff;
+  --success:#00833e;
+  --success-bg:#e6f4ec;
+  --error:#c0392b;
+  --border:#c5d3e0;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;}
+
+/* ── LOGIN ── */
+#loginScreen{
+  position:fixed;inset:0;z-index:1000;
+  background:linear-gradient(135deg,#e8eef5 0%,#f0f4f8 100%);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  display:flex;align-items:center;justify-content:center;
+}
+.login-wrap{
+  display:flex;align-items:stretch;
+  width:min(840px,100%);
+  min-height:500px;border-radius:16px;overflow:hidden;
+  box-shadow:0 20px 60px rgba(13,52,96,.18),0 4px 16px rgba(13,52,96,.1);
+  margin:auto;
+}
+.login-left{
+  flex:1;background:var(--navy);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:48px 40px;gap:18px;
+  background-image:linear-gradient(160deg,var(--navy) 60%,var(--navy-light) 100%);
+}
+.login-left img{height:44px;width:auto;filter:brightness(0) invert(1);opacity:.9;}
+.login-left-divider{width:36px;height:2px;background:rgba(255,255,255,.2);border-radius:2px;}
+.login-left h1{
+  font-size:19px;font-weight:600;color:#fff;
+  text-align:center;line-height:1.45;letter-spacing:-.2px;margin:0;
+}
+.login-left p{
+  font-size:11px;color:rgba(255,255,255,.4);
+  text-align:center;letter-spacing:.7px;text-transform:uppercase;margin:0;
+}
+.login-right{
+  width:340px;flex-shrink:0;background:#ffffff;
+  display:flex;flex-direction:column;justify-content:center;
+  padding:48px 40px;
+}
+.login-right-title{font-size:16px;font-weight:600;color:var(--navy);margin-bottom:4px;}
+.login-right-sub{font-size:12px;color:var(--muted);margin-bottom:32px;}
+.login-field{margin-bottom:18px;}
+.login-field label{
+  display:block;font-size:11px;font-weight:600;
+  letter-spacing:.5px;text-transform:uppercase;
+  color:var(--navy);margin-bottom:7px;
+}
+.login-field input{
+  display:block;width:100%;
+  box-sizing:border-box;
+  height:48px;
+  background:#f5f8fc;
+  border:1.5px solid var(--border);border-radius:8px;
+  padding:0 14px;
+  font-size:16px; /* 16px prevents iOS zoom */
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  outline:none;
+  -webkit-appearance:none;
+  appearance:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.login-field input::placeholder{color:#b0bec5;}
+.login-field input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(13,52,96,.1);}
+.login-btn{
+  display:block;width:100%;
+  height:50px;background:var(--navy);border:none;
+  border-radius:8px;font-family:'Inter',sans-serif;
+  font-size:16px;font-weight:600;color:#fff;
+  cursor:pointer;margin-top:8px;
+  transition:background .15s;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:rgba(0,0,0,0);
+  user-select:none;
+  -webkit-user-select:none;
+}
+.login-btn:hover,.login-btn:active{background:var(--navy-light);}
+.login-err{
+  background:#fdf0f0;border:1px solid #f5c2c2;
+  border-radius:8px;padding:10px 14px;font-size:12px;
+  color:var(--error);margin-top:12px;display:none;text-align:center;
+}
+.login-err.visible{display:block;}
+@media(max-width:640px){
+  #loginScreen{align-items:flex-start;}
+  .login-wrap{
+    flex-direction:column;
+    min-height:100vh;
+    width:100%;
+    border-radius:0;
+    box-shadow:none;
+  }
+  .login-left{flex:0 0 auto;padding:28px 24px 20px;gap:12px;}
+  .login-left h1{font-size:16px;}
+  .login-right{
+    width:100%;flex:1;
+    padding:28px 24px;
+    padding-bottom:calc(24px + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* ── APP SHELL ── */
+#appShell{display:none;}
+header{background:var(--navy);position:relative;overflow:hidden;}
+header::before{content:'';position:absolute;inset:0;background:none;}
+.hdr{max-width:1400px;margin:0 auto;padding:18px 28px;display:flex;align-items:center;gap:14px;position:relative;}
+.hbadge{width:40px;height:40px;background:var(--gold);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.htxt{flex:1;}
+.htxt h1{font-family:'Inter',sans-serif;font-weight:600;font-size:18px;color:#fff;letter-spacing:-.2px;}
+.htxt p{font-size:10px;color:rgba(255,255,255,.4);margin-top:1px;letter-spacing:.8px;text-transform:uppercase;}
+.user-pill{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:100px;padding:6px 14px 6px 10px;}
+.user-avatar{width:26px;height:26px;border-radius:50%;background:var(--gold);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--navy);}
+.user-name{font-size:12px;color:rgba(255,255,255,.8);font-weight:500;}
+.user-role{font-size:9px;color:var(--gold);letter-spacing:.5px;text-transform:uppercase;}
+.logout-btn{width:28px;height:28px;background:rgba(255,255,255,.1);border:none;border-radius:6px;color:rgba(255,255,255,.6);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;margin-left:4px;}
+.logout-btn:hover{background:rgba(255,255,255,.2);color:#fff;}
+.tabs-bar{background:var(--navy-light);border-bottom:1px solid rgba(255,255,255,.08);}
+.tabs-inner{max-width:1400px;margin:0 auto;padding:0 28px;display:flex;}
+.tab-btn{padding:11px 20px;font-size:12.5px;font-weight:500;letter-spacing:.1px;color:rgba(255,255,255,.55);background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;transition:all .18s;font-family:'Inter',sans-serif;}
+.tab-btn:hover{color:rgba(255,255,255,.85);background:rgba(255,255,255,.04);}
+.tab-btn.active{color:#fff;font-weight:600;border-bottom-color:#fff;background:rgba(255,255,255,.06);}
+.tab-btn.admin-only{display:none;}
+main{max-width:1400px;margin:0 auto;padding:22px 28px;}
+.panel{display:none;}.panel.active{display:block;}
+
+/* ── BUTTONS ── */
+.btn{height:40px;padding:0 16px;border:none;border-radius:9px;font-family:'Inter',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;}
+.btn-primary{background:var(--navy);color:#fff;}.btn-primary:hover{background:var(--navy-light);}
+.btn-secondary{background:var(--cream-dark);color:var(--slate);}.btn-secondary:hover{background:#ddd8cf;}
+.btn-gold{background:var(--gold);color:#fff;}.btn-gold:hover{background:var(--gold-light);}
+.btn-green{background:var(--error);color:#fff;}.btn-green:hover{background:#a93226;}
+.btn-red{background:#fdf0f0;color:var(--error);border:1px solid #f5c6c6;}.btn-red:hover{background:#f9dede;}
+.btn-sm{height:32px;padding:0 12px;font-size:12px;}
+.btn-xs{height:26px;padding:0 9px;font-size:11px;}
+
+/* ── UPLOAD ── */
+.upload-zone{background:var(--white);border:1.5px dashed var(--border);border-radius:12px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:18px;position:relative;}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--gold);background:#fdfaf5;}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.upload-zone h3{font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;font-weight:400;font-size:14px;color:var(--navy);margin-bottom:3px;}
+.upload-zone p{font-size:11px;color:var(--muted);}
+.upstatus{margin-top:7px;font-size:12px;font-weight:500;color:var(--success);display:none;}
+.upstatus.visible{display:block;}
+
+/* ── SEARCH ── */
+.search-row{display:flex;gap:9px;margin-bottom:18px;align-items:flex-end;}
+.inp-wrap{display:flex;flex-direction:column;gap:4px;flex:1;}
+.inp-wrap label{font-size:10px;font-weight:500;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);}
+.inp-wrap input{height:40px;border:1.5px solid var(--border);border-radius:9px;padding:0 13px;font-size:15px;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;color:var(--navy);background:var(--white);outline:none;transition:border-color .2s;}
+.inp-wrap input:focus{border-color:var(--navy);}
+.inp-wrap input.invalid{border-color:var(--error);}
+.vmsg{font-size:11px;color:var(--error);margin-top:-12px;margin-bottom:8px;display:none;}
+.vmsg.visible{display:block;}
+.not-found{background:#fdf3f3;border:1px solid #f5c6c6;border-radius:10px;padding:14px 18px;display:none;align-items:center;gap:12px;margin-bottom:14px;}
+.not-found.visible{display:flex;}
+.not-found p{font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;font-size:13px;color:var(--error);}
+.not-found span{font-size:11px;color:#c0555a;display:block;margin-top:1px;}
+
+/* ── RESULT CARD ── */
+.result-card{display:none;background:var(--white);border-radius:14px;overflow:hidden;box-shadow:0 4px 24px rgba(15,31,61,.08);border:1px solid var(--border);}
+.result-card.visible{display:block;}
+.card-hdr{background:var(--navy);padding:18px 26px;display:flex;align-items:center;justify-content:space-between;}
+.card-hdr h2{font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;font-weight:400;font-size:17px;color:#fff;}
+.card-hdr .rsub{font-size:11px;color:var(--gold-light);margin-top:2px;letter-spacing:.8px;}
+.rbadge{padding:4px 12px;border-radius:100px;font-size:10px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;}
+.rb-eval{background:var(--gold);color:var(--navy);}
+.rb-dir{background:#4a90d9;color:#fff;}
+.rb-def{background:rgba(255,255,255,.15);color:#fff;}
+.card-body{padding:20px 26px;}
+.sg{margin-bottom:18px;}
+.st{font-size:8px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--cream-dark);display:flex;align-items:center;gap:6px;}
+.st::before{content:'';width:3px;height:10px;background:var(--gold);border-radius:2px;}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.fl{font-size:9px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:2px;}
+.fv{font-size:13px;color:var(--text);}
+.fv.empty{color:#ccc;font-style:italic;font-size:11px;}
+.ebadge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:5px;font-size:11px;font-weight:500;}
+.epass{background:var(--success-bg);color:var(--success);}
+.efail{background:#fdf0f0;color:var(--error);}
+.vig-ok{background:#e6f4ec;color:#00833e;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px;}
+.vig-warn{background:#fff8e6;color:#9a6400;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px;}
+.vig-exp{background:#fdf0f0;color:#c0392b;padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px;}
+.vig-banner{border-radius:10px;padding:13px 18px;margin-bottom:14px;display:none;align-items:center;gap:12px;}
+.vig-banner.expired{background:#fdf0f0;border:1px solid #f5c6c6;}
+.vig-banner.expiring{background:#fff8e6;border:1px solid #e6c86e;}
+.vig-banner.valid{background:#e6f4ec;border:1px solid #a3d9bb;}
+.vig-banner.visible{display:flex;}
+.vig-banner .vig-icon{font-size:22px;flex-shrink:0;}
+.vig-banner .vig-title{font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;font-size:14px;font-weight:400;}
+.vig-banner.expired .vig-title{color:#c0392b;}
+.vig-banner.expiring .vig-title{color:#9a6400;}
+.vig-banner.valid .vig-title{color:#00833e;}
+.vig-banner .vig-sub{font-size:11px;display:block;margin-top:2px;}
+.vig-banner.expired .vig-sub{color:#c0555a;}
+.vig-banner.expiring .vig-sub{color:#b07800;}
+.vig-banner.valid .vig-sub{color:#3a8a60;}
+.vig-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.vig-stat{background:var(--white);border-radius:12px;padding:16px 18px;border:1px solid var(--border);text-align:center;}
+.vig-stat .stat-num{font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;font-size:28px;font-weight:400;margin-bottom:4px;}
+.vig-stat .stat-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;}
+.vig-stat.expired .stat-num{color:var(--error);}
+.vig-stat.expiring .stat-num{color:#9a6400;}
+.vig-stat.valid .stat-num{color:var(--success);}
+.divider{height:1px;background:var(--cream-dark);margin:14px 0;}
+.card-actions{padding:12px 26px;background:var(--cream);border-top:1px solid var(--cream-dark);display:flex;gap:8px;justify-content:flex-end;}
+
+/* ── GRID ── */
+.toolbar{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+.toolbar .sp{flex:1;}
+.tinfo{font-size:12px;color:var(--muted);}
+.tcontainer{border:1px solid var(--border);border-radius:11px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.05);background:var(--white);}
+.tscroll{overflow-x:auto;overflow-y:auto;max-height:500px;}
+table.grid{border-collapse:collapse;width:100%;font-size:12px;}
+table.grid thead{position:sticky;top:0;z-index:10;}
+table.grid thead th{background:var(--navy);color:#fff;font-weight:500;padding:8px 9px;text-align:left;white-space:nowrap;border-right:1px solid rgba(255,255,255,.1);font-size:10.5px;user-select:none;}
+table.grid thead th.cnum{color:rgba(255,255,255,.35);width:34px;text-align:center;font-size:9px;}
+table.grid thead th:last-child{border-right:none;text-align:center;width:66px;}
+table.grid tbody tr:nth-child(even){background:#fafaf8;}
+table.grid tbody tr:hover{background:#f2ede4!important;}
+table.grid tbody td{padding:0;border-bottom:1px solid #eee;border-right:1px solid #eee;}
+table.grid tbody td.cnum{text-align:center;color:var(--muted);font-size:10px;background:#f5f4f0;min-width:34px;padding:6px 3px;border-right:2px solid var(--border);}
+table.grid tbody td:last-child{border-right:none;}
+table.grid tbody td input.ci{width:100%;height:31px;padding:0 7px;border:none;background:transparent;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);outline:none;cursor:default;min-width:75px;}
+table.grid tbody td input.ci:focus{background:#fffde0;cursor:text;box-shadow:inset 0 0 0 2px var(--gold);}
+.racts{display:flex;gap:3px;padding:2px 5px;justify-content:center;}
+.rbtn{width:24px;height:24px;border:none;border-radius:5px;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;}
+.rbtn-del{background:#fdf0f0;color:var(--error);}.rbtn-del:hover{background:#f5c6c6;}
+.addbtn{width:100%;padding:8px 16px;border:none;background:#f5f2ec;border-top:1px solid var(--border);font-size:12px;color:var(--muted);cursor:pointer;text-align:left;display:flex;align-items:center;gap:6px;transition:all .15s;}
+.addbtn:hover{background:var(--cream-dark);color:var(--navy);}
+.hint{margin-top:8px;font-size:11px;color:var(--muted);}
+
+/* ── FILTERS ── */
+.filter-box{background:var(--white);border-radius:12px;padding:18px 20px;border:1px solid var(--border);margin-bottom:16px;}
+.filter-box h3{font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;font-weight:400;font-size:14px;color:var(--navy);margin-bottom:13px;display:flex;align-items:center;gap:7px;}
+.filter-box h3::before{content:'';width:3px;height:13px;background:var(--gold);border-radius:2px;display:inline-block;}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:13px;}
+.filter-label{display:block;font-size:9.5px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.filter-select,.filter-input{width:100%;height:34px;border:1.5px solid var(--border);border-radius:8px;padding:0 9px;font-size:12.5px;font-family:'Inter',sans-serif;color:var(--text);background:var(--white);outline:none;transition:border-color .2s;}
+.filter-select:focus,.filter-input:focus{border-color:var(--navy);}
+.filter-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.fcount{font-size:12px;color:var(--muted);margin-left:auto;}
+.fresults-hdr{display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;}
+.fresults-hdr span{font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;font-size:14px;color:var(--navy);}
+.fresults-hdr .sp{flex:1;}
+.fempty{background:#fdf3f3;border:1px solid #f5c6c6;border-radius:10px;padding:14px 18px;color:var(--error);font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;font-size:13px;display:none;}
+table.grid tbody td.tcell{padding:6px 9px;font-size:11.5px;}
+
+/* ── ADMIN ── */
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:22px;}
+@media(max-width:700px){.admin-grid{grid-template-columns:1fr;}}
+.admin-card{background:var(--white);border-radius:12px;padding:18px 20px;border:1px solid var(--border);}
+.admin-card h3{font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;font-weight:400;font-size:14px;color:var(--navy);margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.admin-card h3::before{content:'';width:3px;height:13px;background:var(--gold);border-radius:2px;display:inline-block;}
+.form-field{margin-bottom:11px;}
+.form-field label{display:block;font-size:10px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.form-field input,.form-field select,.form-field textarea{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;font-family:'Inter',sans-serif;color:var(--text);background:var(--white);outline:none;transition:border-color .2s;}
+.form-field input:focus,.form-field select:focus,.form-field textarea:focus{border-color:var(--navy);}
+.form-field input{height:36px;}
+.form-field select{height:36px;}
+.users-table{width:100%;border-collapse:collapse;font-size:12.5px;}
+.users-table thead th{background:var(--cream-dark);color:var(--navy);padding:8px 10px;text-align:left;font-size:10.5px;font-weight:600;letter-spacing:.3px;}
+.users-table tbody tr:hover{background:var(--cream);}
+.users-table tbody td{padding:8px 10px;border-bottom:1px solid var(--cream-dark);vertical-align:middle;}
+.role-chip{padding:2px 9px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:.4px;text-transform:uppercase;}
+.chip-admin{background:#e8eef8;color:#1a5276;}
+.chip-editor{background:#e8f8ef;color:#00833e;}
+.chip-user{background:#f5f5f5;color:#6c7a89;}
+.log-table{width:100%;border-collapse:collapse;font-size:12px;}
+.log-table thead th{background:var(--navy);color:#fff;padding:8px 10px;text-align:left;font-size:10.5px;font-weight:500;border-right:1px solid rgba(255,255,255,.1);}
+.log-table thead th:last-child{border-right:none;}
+.log-table tbody tr:nth-child(even){background:#fafaf8;}
+.log-table tbody td{padding:7px 10px;border-bottom:1px solid #eee;color:var(--text);}
+.log-action{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:5px;font-size:11px;font-weight:500;}
+.log-search{background:#e8eef8;color:#1a5276;}
+.log-pdf{background:var(--success-bg);color:var(--success);}
+.log-filter{background:#fff8e6;color:#a07020;}
+.log-excel{background:#e6f4ec;color:#00833e;}
+.log-login{background:#f0f0f0;color:#555;}
+
+/* ── DOCUMENTOS ── */
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-top:14px;}
+.doc-card{background:var(--white);border:1px solid var(--border);border-radius:12px;padding:16px 18px;transition:box-shadow .15s;display:flex;flex-direction:column;gap:8px;}
+.doc-card:hover{box-shadow:0 4px 16px rgba(15,31,61,.1);}
+.doc-card-top{display:flex;align-items:flex-start;gap:10px;}
+.doc-icon{width:36px;height:36px;background:#fdf0f0;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.doc-title{font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;font-weight:400;font-size:13.5px;color:var(--navy);line-height:1.3;}
+.doc-entidad{display:inline-flex;align-items:center;gap:4px;background:var(--cream-dark);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:500;color:var(--slate);}
+.doc-meta{font-size:10.5px;color:var(--muted);}
+.doc-desc{font-size:11.5px;color:var(--slate);line-height:1.5;}
+.doc-actions{display:flex;gap:6px;margin-top:4px;}
+.doc-open{flex:1;height:32px;background:var(--navy);color:#fff;border:none;border-radius:7px;font-size:12px;font-family:'Inter',sans-serif;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;transition:background .15s;text-decoration:none;}
+.doc-open:hover{background:var(--navy-light);}
+.doc-edit{width:32px;height:32px;background:var(--cream-dark);border:none;border-radius:7px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.doc-edit:hover{background:#ddd8cf;}
+.doc-del{width:32px;height:32px;background:#fdf0f0;border:1px solid #f5c6c6;border-radius:7px;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;transition:background .15s;}
+.doc-del:hover{background:#f9dede;}
+.docs-empty{background:#fdf3f3;border:1px solid #f5c6c6;border-radius:10px;padding:18px;text-align:center;color:var(--error);font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;font-size:13px;display:none;}
+.docs-empty.visible{display:block;}
+.docs-none{text-align:center;padding:32px;color:var(--muted);font-size:13px;display:none;}
+.docs-none.visible{display:block;}
+
+/* ══════════════════════════════════════
+   FICHA ENTIDAD — nuevos estilos
+══════════════════════════════════════ */
+/* Tabla entidades clickeable */
+.ent-row-clickable{cursor:pointer;}
+.ent-row-clickable:hover td{background:#f0ece0!important;}
+.ent-row-selected td{background:#fdf7e8!important;border-left:3px solid var(--gold);}
+
+/* Panel ficha entidad */
+.ent-ficha-panel{display:none;margin-top:18px;background:var(--white);border-radius:16px;box-shadow:0 6px 28px rgba(15,31,61,.10);border:1px solid var(--border);overflow:hidden;animation:slideDown .25s ease;}
+.ent-ficha-panel.visible{display:block;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-10px);}to{opacity:1;transform:translateY(0);}}
+
+.ent-ficha-hdr{background:linear-gradient(135deg,var(--navy) 0%,var(--navy-light) 100%);padding:20px 28px;display:flex;align-items:flex-start;gap:18px;position:relative;overflow:hidden;}
+.ent-ficha-hdr::before{content:'🏢';position:absolute;right:24px;top:50%;transform:translateY(-50%);font-size:70px;opacity:.07;}
+.ent-ficha-initials{width:52px;height:52px;background:var(--gold);border-radius:12px;display:flex;align-items:center;justify-content:center;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;font-size:22px;font-weight:400;color:var(--navy);flex-shrink:0;}
+.ent-ficha-meta{flex:1;}
+.ent-ficha-meta h2{font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;font-weight:300;font-size:20px;color:#fff;margin-bottom:4px;}
+.ent-ficha-meta p{font-size:11px;color:rgba(255,255,255,.45);letter-spacing:.6px;text-transform:uppercase;}
+.ent-ficha-close{width:32px;height:32px;background:rgba(255,255,255,.12);border:none;border-radius:8px;color:rgba(255,255,255,.7);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s;}
+.ent-ficha-close:hover{background:rgba(255,255,255,.25);color:#fff;}
+
+.ent-ficha-body{padding:22px 28px;}
+.ent-tabs{display:flex;gap:0;border-bottom:1.5px solid var(--border);margin-bottom:20px;}
+.ent-tab{padding:8px 16px;font-size:12.5px;font-weight:500;color:var(--muted);background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;transition:all .15s;margin-bottom:-1.5px;}
+.ent-tab:hover{color:var(--navy);}
+.ent-tab.active{color:var(--navy);border-bottom-color:var(--gold);font-weight:600;}
+.ent-tab-content{display:none;}.ent-tab-content.active{display:block;}
+
+/* Stats row inside ficha */
+.ent-stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.ent-stat{background:var(--cream);border-radius:10px;padding:12px 14px;text-align:center;border:1px solid var(--cream-dark);}
+.ent-stat .sn{font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;font-size:24px;color:var(--navy);}
+.ent-stat .sl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:2px;}
+
+/* Datos generales de la entidad */
+.ent-datos-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:18px;}
+.ent-dato{background:var(--cream);border-radius:9px;padding:12px 14px;border:1px solid var(--cream-dark);}
+.ent-dato .ed-label{font-size:9px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+.ent-dato .ed-val{font-size:13px;color:var(--text);font-weight:500;}
+
+/* Tabla evaluadores en ficha */
+.mini-table{width:100%;border-collapse:collapse;font-size:12px;}
+.mini-table thead th{background:var(--navy);color:rgba(255,255,255,.8);padding:7px 10px;text-align:left;font-size:10.5px;font-weight:500;border-right:1px solid rgba(255,255,255,.1);}
+.mini-table thead th:last-child{border-right:none;}
+.mini-table tbody tr:nth-child(even){background:#fafaf8;}
+.mini-table tbody tr:hover{background:#f2ede4!important;}
+.mini-table tbody td{padding:7px 10px;border-bottom:1px solid #eee;font-size:12px;}
+.mini-table-wrap{border:1px solid var(--border);border-radius:10px;overflow:hidden;max-height:360px;overflow-y:auto;}
+
+/* Procesos tabla */
+.proc-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap;}
+.proc-form{background:var(--cream);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:14px;display:none;}
+.proc-form.visible{display:block;}
+.proc-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.proc-form-grid .full{grid-column:1/-1;}
+.proc-mini-label{font-size:9.5px;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-bottom:3px;display:block;}
+.proc-mini-input,.proc-mini-select{width:100%;height:34px;border:1.5px solid var(--border);border-radius:7px;padding:0 9px;font-size:12.5px;font-family:'Inter',sans-serif;color:var(--text);background:var(--white);outline:none;}
+.proc-mini-input:focus,.proc-mini-select:focus{border-color:var(--navy);}
+.proc-empty{text-align:center;padding:24px;color:var(--muted);font-size:12.5px;font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;}
+
+/* ── BANNER ── */
+.sbanner{position:fixed;bottom:18px;right:18px;z-index:500;background:var(--navy);color:#fff;padding:10px 16px;border-radius:9px;box-shadow:0 6px 20px rgba(0,0,0,.18);display:none;align-items:center;gap:9px;font-size:12.5px;}
+.sbanner.visible{display:flex;animation:slideUp .2s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-wrap">
+    <div class="login-left">
+      <img src="https://www.superdesalud.gob.cl/app/themes/supersalud-bloom/assets/src/img/logo-super2020-negro.png"
+           alt="Superintendencia de Salud" onerror="this.style.display='none'">
+      <div class="login-left-divider"></div>
+      <h1>Base de evaluadores del<br>Sistema de Acreditación</h1>
+      <p>Intendencia de Prestadores</p>
+    </div>
+    <div class="login-right">
+      <div class="login-right-title">Iniciar sesión</div>
+      <div class="login-right-sub">Ingrese sus credenciales para continuar</div>
+      <form id="loginForm" action="javascript:void(0)" onsubmit="doLogin();return false;" style="margin:0">
+        <div class="login-field">
+          <label for="loginUser">Usuario</label>
+          <input type="text" id="loginUser" name="username"
+                 placeholder="Ingrese su usuario"
+                 autocomplete="username"
+                 autocapitalize="none" autocorrect="off" spellcheck="false"
+                 inputmode="text">
+        </div>
+        <div class="login-field">
+          <label for="loginPass">Contraseña</label>
+          <input type="password" id="loginPass" name="password"
+                 placeholder="Ingrese su contraseña"
+                 autocomplete="current-password">
+        </div>
+        <button type="submit" class="login-btn" id="loginBtn">Ingresar</button>
+        <div class="login-err" id="loginErr">Usuario o contraseña incorrectos</div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appShell">
+<header>
+  <div class="hdr">
+    <img src="https://www.superdesalud.gob.cl/app/themes/supersalud-bloom/assets/src/img/logo-super2020-negro.png"
+         alt="Superintendencia de Salud"
+         style="height:36px;width:auto;flex-shrink:0;filter:brightness(0) invert(1);opacity:.92;"
+         onerror="this.onerror=null;">
+    <div style="width:1px;height:32px;background:rgba(255,255,255,.15);flex-shrink:0;margin:0 4px;"></div>
+    <div class="htxt">
+      <h1>Registro de Evaluadores Acreditados</h1>
+      <p>Sistema de consulta y gestión · Superintendencia de Salud</p>
+    </div>
+    <div class="user-pill">
+      <div class="user-avatar" id="userAvatar">?</div>
+      <div><div class="user-name" id="userName">—</div><div class="user-role" id="userRoleLabel">—</div></div>
+    </div>
+    <button class="logout-btn" title="Cerrar sesión" onclick="doLogout()">↩</button>
+  </div>
+</header>
+<div class="tabs-bar">
+  <div class="tabs-inner">
+    <button class="tab-btn active" onclick="showTab('buscar',this)">Buscar</button>
+    <button class="tab-btn" onclick="showTab('filtros',this)">Filtros y Reportes</button>
+    <button class="tab-btn" onclick="showTab('vigencia',this)">Vigencias</button>
+    <button class="tab-btn" onclick="showTab('entidades',this)">Entidades Acreditadoras</button>
+    <button class="tab-btn" onclick="showTab('procesos-global',this);renderProcesosGlobal()">Procesos de Acreditación</button>
+    <button class="tab-btn" onclick="showTab('documentos',this)">Documentos</button>
+    <button class="tab-btn admin-only" onclick="showTab('base',this)">Base de Datos</button>
+    <button class="tab-btn admin-only" onclick="showTab('admin',this)">Administración</button>
+  </div>
+</div>
+
+<main>
+
+<!-- ===== BUSCAR ===== -->
+<div class="panel active" id="tab-buscar">
+  <div class="upload-zone admin-upload editor-only" id="uploadZone" style="display:none">
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv">
+    <div style="font-size:26px;margin-bottom:8px">📂</div>
+    <h3>Cargar base de datos</h3>
+    <p>Arrastra tu archivo aquí o haz clic · Excel (.xlsx) o CSV</p>
+    <div class="upstatus" id="uploadStatus"></div>
+  </div>
+  <div id="noDataBanner" style="background:#fff8e6;border:1px solid #e6c86e;border-radius:10px;padding:12px 18px;margin-bottom:16px;font-size:12.5px;color:#7a5800;display:none;">
+    ⚠️ No hay datos cargados. Contacte al administrador para cargar la base de datos.
+  </div>
+  <div class="search-row">
+    <div class="inp-wrap"><label>RUT del Evaluador</label><input type="text" id="rutInput" placeholder="Ej: 12.345.678-9" maxlength="12"></div>
+    <button class="btn btn-primary" onclick="buscarEvaluador()">Buscar</button>
+    <button class="btn btn-secondary" onclick="limpiar()">✕ Limpiar</button>
+  </div>
+  <div class="vmsg" id="validationMsg"></div>
+  <div class="not-found" id="notFound">
+    <span style="font-size:20px">🔎</span>
+    <div><p>Evaluador no encontrado en la base de datos.</p><span>Verifique el RUT e intente nuevamente.</span></div>
+  </div>
+  <div class="result-card" id="resultCard">
+    <div class="card-hdr">
+      <div><h2 id="f-nombre">—</h2><div class="rsub" id="f-rut-header">—</div></div>
+      <span class="rbadge" id="f-rol-badge">—</span>
+    </div>
+    <div class="vig-banner" id="vigBanner">
+      <div class="vig-icon" id="vigBannerIcon"></div>
+      <div><div class="vig-title" id="vigBannerTitle"></div><span class="vig-sub" id="vigBannerSub"></span></div>
+    </div>
+    <div class="card-body">
+      <div class="sg"><div class="st">Datos Personales</div>
+        <div class="fg3">
+          <div><div class="fl">RUT</div><div class="fv" id="f-rut">—</div></div>
+          <div><div class="fl">Edad</div><div class="fv" id="f-edad">—</div></div>
+          <div><div class="fl">Región</div><div class="fv" id="f-region">—</div></div>
+        </div></div>
+      <div class="divider"></div>
+      <div class="sg"><div class="st">Datos Profesionales</div>
+        <div class="fg">
+          <div><div class="fl">Profesión</div><div class="fv" id="f-profesion">—</div></div>
+          <div><div class="fl">Mención</div><div class="fv" id="f-mencion">—</div></div>
+          <div><div class="fl">Número de Registro</div><div class="fv" id="f-registro">—</div></div>
+        </div></div>
+      <div class="divider"></div>
+      <div class="sg"><div class="st">Datos de Acreditación</div>
+        <div class="fg">
+          <div><div class="fl">Entidades Acreditadoras</div><div class="fv" id="f-entidades">—</div></div>
+          <div><div class="fl">Tipo de Rol</div><div class="fv" id="f-rol">—</div></div>
+          <div><div class="fl">Resultado del Examen</div><div class="fv" id="f-resultado">—</div></div>
+          <div><div class="fl">N° Resolución Examen</div><div class="fv" id="f-resolucion">—</div></div>
+          <div><div class="fl">Fecha de Resolución</div><div class="fv" id="f-fecha">—</div></div>
+          <div><div class="fl">Estado Vigencia</div><div class="fv" id="f-vigencia">—</div></div>
+          <div><div class="fl">Vence el</div><div class="fv" id="f-vence">—</div></div>
+        </div></div>
+      <div class="divider"></div>
+      <div class="sg"><div class="st">Experiencia</div>
+        <div class="fg3">
+          <div><div class="fl">Exclusivo / Compartido</div><div class="fv" id="f-exclusivo">—</div></div>
+          <div><div class="fl">Años Exp. Clínica</div><div class="fv" id="f-experiencia">—</div></div>
+          <div><div class="fl">Proyectos SEOS</div><div class="fv" id="f-proyectos">—</div></div>
+        </div></div>
+    </div>
+    <div class="card-actions">
+      <button class="btn btn-secondary" onclick="limpiar()">✕ Nueva búsqueda</button>
+      <button class="btn btn-gold" onclick="exportarFichaPDF()">⬇ Exportar PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FILTROS ===== -->
+<div class="panel" id="tab-filtros">
+  <div class="filter-box">
+    <h3>Filtros de búsqueda</h3>
+    <div class="fgrid">
+      <div><label class="filter-label">Región</label><select class="filter-select" id="fRegion"><option value="">Todas</option></select></div>
+      <div><label class="filter-label">Profesión</label><select class="filter-select" id="fProfesion"><option value="">Todas</option></select></div>
+      <div><label class="filter-label">Rol</label>
+        <select class="filter-select" id="fRol"><option value="">Todos</option><option value="evaluador">Evaluador</option><option value="director">Director Técnico</option></select></div>
+      <div><label class="filter-label">Resultado Examen</label>
+        <select class="filter-select" id="fResultado"><option value="">Todos</option><option value="aprobado">Aprobado</option><option value="reprobado">Reprobado</option></select></div>
+      <div><label class="filter-label">Exclusivo / Compartido</label>
+        <select class="filter-select" id="fExclusivo"><option value="">Todos</option><option value="exclusivo">Exclusivo</option><option value="compartido">Compartido</option></select></div>
+      <div><label class="filter-label">Entidad Acreditadora</label><select class="filter-select" id="fEntidad"><option value="">Todas</option></select></div>
+      <div><label class="filter-label">Años exp. mínimos</label><input type="number" class="filter-input" id="fExpMin" placeholder="Ej: 5" min="0"></div>
+      <div><label class="filter-label">Nombre</label><input type="text" class="filter-input" id="fNombre" placeholder="Buscar por nombre..."></div>
+      <div><label class="filter-label">Apellido</label><input type="text" class="filter-input" id="fApellido" placeholder="Buscar por apellido..."></div>
+    </div>
+    <div class="filter-actions">
+      <button class="btn btn-primary btn-sm" onclick="aplicarFiltros()">🔎 Aplicar filtros</button>
+      <button class="btn btn-secondary btn-sm" onclick="limpiarFiltros()">✕ Limpiar</button>
+      <span class="fcount" id="filtroCount"></span>
+    </div>
+  </div>
+  <div class="fempty" id="filtroEmpty">Sin resultados para los filtros seleccionados.</div>
+  <div id="filtroResults" style="display:none">
+    <div class="fresults-hdr">
+      <span id="filtroResultLabel"></span><div class="sp"></div>
+      <button class="btn btn-gold btn-sm" onclick="exportarReportePDF()">⬇ PDF</button>
+      <button class="btn btn-green btn-sm" onclick="exportarReporteExcel()">⬇ Excel</button>
+    </div>
+    <div class="tcontainer"><div class="tscroll" style="max-height:440px">
+      <table class="grid"><thead id="filtroHead"></thead><tbody id="filtroBody"></tbody></table>
+    </div></div>
+  </div>
+</div>
+
+<!-- ===== VIGENCIAS ===== -->
+<div class="panel" id="tab-vigencia">
+  <div class="vig-stats">
+    <div class="vig-stat expired"><div class="stat-num" id="vigCountExpired">—</div><div class="stat-label">⛔ Vigencia vencida</div></div>
+    <div class="vig-stat expiring"><div class="stat-num" id="vigCountExpiring">—</div><div class="stat-label">⚠️ Vence en &lt;6 meses</div></div>
+    <div class="vig-stat valid"><div class="stat-num" id="vigCountValid">—</div><div class="stat-label">✅ Vigente</div></div>
+  </div>
+  <div style="display:flex;gap:9px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+    <div><label class="filter-label" style="font-size:9px;color:var(--muted);display:block;margin-bottom:3px;">Estado</label>
+      <select class="filter-select" id="vigFilter" style="width:190px;height:34px" onchange="renderVigenciaTable()">
+        <option value="all">Todos los estados</option><option value="expired">Solo vencidos</option>
+        <option value="expiring">Por vencer (&lt;6 meses)</option><option value="valid">Solo vigentes</option>
+      </select></div>
+    <div><label class="filter-label" style="font-size:9px;color:var(--muted);display:block;margin-bottom:3px;">Entidad Acreditadora</label>
+      <select class="filter-select" id="vigEntidad" style="width:210px;height:34px" onchange="renderVigenciaTable()"><option value="">Todas las entidades</option></select></div>
+    <div style="flex:1"></div>
+    <button class="btn btn-gold btn-sm" onclick="exportarVigenciaPDF()">⬇ PDF</button>
+    <button class="btn btn-green btn-sm" onclick="exportarVigenciaExcel()">⬇ Excel</button>
+  </div>
+  <div id="vigNoData" style="background:#fff8e6;border:1px solid #e6c86e;border-radius:10px;padding:14px 18px;font-size:12.5px;color:#7a5800;display:none;">⚠️ No hay datos cargados.</div>
+  <div class="tcontainer" id="vigTableWrap"><div class="tscroll" style="max-height:500px">
+    <table class="grid"><thead id="vigHead"></thead><tbody id="vigBody"></tbody></table>
+  </div></div>
+</div>
+
+<!-- ===== ENTIDADES ACREDITADORAS ===== -->
+<div class="panel" id="tab-entidades">
+
+  <div class="vig-stats">
+    <div class="vig-stat expired"><div class="stat-num" id="entCountExpired">—</div><div class="stat-label">⛔ Autorización vencida</div></div>
+    <div class="vig-stat expiring"><div class="stat-num" id="entCountExpiring">—</div><div class="stat-label">⚠️ Vence en &lt;6 meses</div></div>
+    <div class="vig-stat valid"><div class="stat-num" id="entCountValid">—</div><div class="stat-label">✅ Vigente</div></div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px">
+    <div class="admin-card" id="entAdminForm">
+      <h3 id="entFormTitle">Agregar / Editar Entidad</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 12px">
+        <div class="form-field" style="grid-column:1/-1"><label>Nombre de la Entidad *</label><input type="text" id="entNombre" placeholder="Nombre legal completo"></div>
+        <div class="form-field"><label>N° de Registro</label><input type="text" id="entNRegistro" placeholder="Ej: 1"></div>
+        <div class="form-field"><label>RUT</label><input type="text" id="entRut" placeholder="Ej: 76.042.423-4"></div>
+        <div class="form-field" style="grid-column:1/-1"><label>Nombre de Fantasía</label><input type="text" id="entNombreFantasia" placeholder="Nombre comercial o sigla"></div>
+        <div class="form-field" style="grid-column:1/-1"><label>Dirección</label><input type="text" id="entDireccion" placeholder="Calle, número, comuna, región"></div>
+        <div class="form-field"><label>Teléfono</label><input type="text" id="entTelefono" placeholder="+56 2 ..."></div>
+        <div class="form-field"><label>Correo electrónico</label><input type="email" id="entEmail" placeholder="contacto@entidad.cl"></div>
+        <div class="form-field"><label>Página web</label><input type="text" id="entWeb" placeholder="www.entidad.cl"></div>
+        <div class="form-field"><label>Representante legal</label><input type="text" id="entRepLegal" placeholder="Nombre completo"></div>
+        <div class="form-field"><label>Correo representante legal</label><input type="email" id="entEmailRepLegal" placeholder="rep@entidad.cl"></div>
+        <div class="form-field"><label>Fecha de última autorización *</label><input type="date" id="entFecha"></div>
+        <div class="form-field"><label>URL Registro Público</label><input type="url" id="entUrlRegistro" placeholder="https://www.superdesalud.gob.cl/registro/..."></div>
+        <div class="form-field" style="grid-column:1/-1"><label>Notas (opcional)</label><input type="text" id="entNotas" placeholder="Observaciones internas..."></div>
+      </div>
+      <input type="hidden" id="entEditIdx" value="-1">
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-primary" style="flex:1" onclick="guardarEntidad()">＋ Guardar entidad</button>
+        <button class="btn btn-secondary" onclick="cancelarEditEntidad()" id="btnCancelarEnt" style="display:none">✕</button>
+      </div>
+      <div style="font-size:11px;color:var(--error);margin-top:6px;display:none" id="entFormErr"></div>
+    </div>
+    <div class="admin-card" style="background:var(--cream);border-style:dashed">
+      <h3>¿Cómo funciona?</h3>
+      <p style="font-size:12.5px;color:var(--slate);line-height:1.6;margin-bottom:10px">
+        Cada entidad tiene vigencia de <strong>5 años</strong> desde su última autorización. La fecha de vencimiento se calcula automáticamente.<br><br>
+        Haz clic en cualquier fila de la tabla para ver la <strong>ficha completa</strong> de esa entidad, incluyendo evaluadores asociados, documentos y procesos de acreditación.
+      </p>
+      <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+        <span><span class="vig-exp">⛔ Vencida</span> &nbsp;— autorización expirada</span>
+        <span><span class="vig-warn">⚠️ Por vencer</span> &nbsp;— vence en menos de 6 meses</span>
+        <span><span class="vig-ok">✅ Vigente</span> &nbsp;— autorización activa</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:9px;align-items:center;margin-bottom:12px;flex-wrap:wrap;">
+    <div><label class="filter-label" style="font-size:9px;color:var(--muted);display:block;margin-bottom:3px;">Estado</label>
+      <select class="filter-select" id="entFilter" style="width:190px;height:34px" onchange="renderEntidadesTable()">
+        <option value="all">Todos los estados</option><option value="expired">Solo vencidas</option>
+        <option value="expiring">Por vencer (&lt;6 meses)</option><option value="valid">Solo vigentes</option>
+      </select></div>
+    <div style="flex:1"></div>
+    <button class="btn btn-gold btn-sm" onclick="exportarEntidadesPDF()">⬇ PDF</button>
+    <button class="btn btn-green btn-sm" onclick="exportarEntidadesExcel()">⬇ Excel</button>
+  </div>
+
+  <div id="entNoData" style="background:#fff8e6;border:1px solid #e6c86e;border-radius:10px;padding:14px 18px;font-size:12.5px;color:#7a5800;display:none;">
+    ⚠️ No hay entidades registradas. Agrega la primera entidad arriba.
+  </div>
+
+  <div class="tcontainer" id="entTableWrap" style="display:none">
+    <div class="tscroll" style="max-height:340px">
+      <table class="grid">
+        <thead id="entHead"></thead>
+        <tbody id="entBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ FICHA ENTIDAD ══ -->
+  <div class="ent-ficha-panel" id="entFichaPanel">
+
+    <div class="ent-ficha-hdr">
+      <div class="ent-ficha-initials" id="efInitials">—</div>
+      <div class="ent-ficha-meta">
+        <h2 id="efNombre">—</h2>
+        <p id="efSubtitle">Entidad Acreditadora · SEOS</p>
+      <a id="efLinkRegistro" href="#" target="_blank" style="display:none;font-size:11px;color:rgba(255,255,255,.6);text-decoration:none;border:1px solid rgba(255,255,255,.2);border-radius:5px;padding:2px 9px;margin-top:2px;transition:all .15s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='rgba(255,255,255,.6)'">Ver en registro público →</a>
+      </div>
+      <button class="ent-ficha-close" onclick="cerrarFichaEntidad()" title="Cerrar ficha">✕</button>
+    </div>
+
+    <div class="ent-ficha-body">
+
+      <!-- Stats -->
+      <div class="ent-stat-row">
+        <div class="ent-stat"><div class="sn" id="efTotalEval">0</div><div class="sl">Total evaluadores</div></div>
+        <div class="ent-stat"><div class="sn" id="efAprobados" style="color:var(--success)">0</div><div class="sl">Aprobados</div></div>
+        <div class="ent-stat"><div class="sn" id="efReprobados" style="color:var(--error)">0</div><div class="sl">Reprobados</div></div>
+        <div class="ent-stat"><div class="sn" id="efProcesos">0</div><div class="sl">Proc. acreditación</div></div>
+      </div>
+
+      <!-- Sub-tabs -->
+      <div class="ent-tabs">
+        <button class="ent-tab active" onclick="switchEntTab('datos',this)">📋 Datos Generales</button>
+        <button class="ent-tab" onclick="switchEntTab('evaluadores',this)">👤 Evaluadores</button>
+        <button class="ent-tab" onclick="switchEntTab('procesos',this)">📊 Procesos Acreditación</button>
+        <button class="ent-tab" onclick="switchEntTab('documentos',this)">Documentos</button>
+      </div>
+
+      <!-- SUB-TAB: DATOS GENERALES -->
+      <div class="ent-tab-content active" id="eftab-datos">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0">
+
+          <div style="grid-column:1/-1;background:var(--navy);color:rgba(255,255,255,.7);font-size:9.5px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;padding:8px 16px;border-radius:8px 8px 0 0;margin-bottom:0">
+            Datos del Registro Público
+          </div>
+
+          <div class="ent-dato" style="border-top:none"><div class="ed-label">N° de Registro</div><div class="ed-val" id="efDatNReg">—</div></div>
+          <div class="ent-dato" style="border-top:none"><div class="ed-label">RUT</div><div class="ed-val" id="efDatRut">—</div></div>
+          <div class="ent-dato"><div class="ed-label">Nombre</div><div class="ed-val" id="efDatNombre">—</div></div>
+          <div class="ent-dato"><div class="ed-label">Nombre de Fantasía</div><div class="ed-val" id="efDatFantasia">—</div></div>
+          <div class="ent-dato"><div class="ed-label">Dirección</div><div class="ed-val" id="efDatDireccion">—</div></div>
+          <div class="ent-dato"><div class="ed-label">Teléfono</div><div class="ed-val" id="efDatTelefono">—</div></div>
+          <div class="ent-dato"><div class="ed-label">Correo electrónico</div><div class="ed-val" id="efDatEmail">—</div></div>
+          <div class="ent-dato"><div class="ed-label">Página web</div><div class="ed-val" id="efDatWeb">—</div></div>
+          <div class="ent-dato"><div class="ed-label">Representante legal</div><div class="ed-val" id="efDatRepLegal">—</div></div>
+          <div class="ent-dato"><div class="ed-label">Correo representante legal</div><div class="ed-val" id="efDatEmailRep">—</div></div>
+
+          <div style="grid-column:1/-1;background:var(--cream-dark);color:var(--navy);font-size:9.5px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;padding:8px 16px;margin-top:4px">
+            Vigencia de Autorización
+          </div>
+
+          <div class="ent-dato" style="border-top:none"><div class="ed-label">Fecha de última autorización</div><div class="ed-val" id="efDatFecha">—</div></div>
+          <div class="ent-dato" style="border-top:none"><div class="ed-label">Fecha de vencimiento</div><div class="ed-val" id="efDatVence">—</div></div>
+          <div class="ent-dato"><div class="ed-label">Estado de vigencia</div><div class="ed-val" id="efDatEstado">—</div></div>
+          <div class="ent-dato"><div class="ed-label">Días restantes</div><div class="ed-val" id="efDatDias">—</div></div>
+
+          <div style="grid-column:1/-1;padding:10px 16px 6px">
+            <div class="ed-label" style="margin-bottom:4px">Notas</div>
+            <div class="ed-val" id="efDatNotas" style="font-size:12px;color:var(--muted)">—</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- SUB-TAB: EVALUADORES -->
+      <div class="ent-tab-content" id="eftab-evaluadores">
+        <div style="margin-bottom:12px;display:flex;align-items:center;gap:10px">
+          <input type="text" class="filter-input" id="efEvalSearch" placeholder="Filtrar por nombre o RUT…" style="width:260px;height:34px" oninput="renderEfEvaluadores()">
+          <span id="efEvalCount" style="font-size:12px;color:var(--muted)"></span>
+        </div>
+        <div class="mini-table-wrap">
+          <table class="mini-table">
+            <thead><tr><th>Nombre</th><th>RUT</th><th>Profesión</th><th>Rol</th><th>Resultado</th><th>Vigencia</th></tr></thead>
+            <tbody id="efEvalBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SUB-TAB: PROCESOS DE ACREDITACIÓN -->
+      <div class="ent-tab-content" id="eftab-procesos">
+        <div class="proc-toolbar">
+          <button class="btn btn-primary btn-sm" id="btnAddProc" onclick="toggleProcForm()">＋ Registrar proceso</button>
+          <button class="btn btn-secondary btn-sm" id="btnImportProc" onclick="toggleImportProc()" style="display:none">📂 Importar desde Excel</button>
+          <span id="efProcCount" style="font-size:12px;color:var(--muted)"></span>
+          <div style="flex:1"></div>
+          <button class="btn btn-gold btn-sm" onclick="exportarProcesosPDF()">⬇ PDF</button>
+          <button class="btn btn-green btn-sm" onclick="exportarProcesosExcel()">⬇ Excel</button>
+          <button class="btn btn-secondary btn-sm" onclick="descargarPlantillaProcesos()" title="Descargar plantilla Excel para importar">📋 Plantilla</button>
+        </div>
+
+        <!-- Import desde Excel -->
+        <div class="proc-form" id="procImportForm" style="background:#f0f8ff;border-color:#b8d9f8;">
+          <div style="font-weight:600;font-size:13px;color:var(--navy);margin-bottom:8px">📂 Importar procesos desde Excel</div>
+          <div style="font-size:12px;color:var(--slate);margin-bottom:10px;line-height:1.5">
+            El archivo debe tener las columnas: <strong>Prestador</strong>, <strong>Fecha</strong>, <strong>Resultado</strong>, <strong>N° Resolución</strong>, <strong>Entidad Acreditadora</strong>, <strong>Observaciones</strong>.<br>
+            Descarga la <button class="btn btn-secondary btn-xs" onclick="descargarPlantillaProcesos()">📋 plantilla</button> para ver el formato exacto.
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:var(--white);border:1.5px dashed var(--border);border-radius:8px;padding:9px 16px;font-size:13px;color:var(--navy);transition:all .15s" id="procImportLabel">
+              <span>📁</span><span id="procImportFileName">Seleccionar archivo Excel...</span>
+              <input type="file" id="procImportFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="previsualizarImportProcesos(this)">
+            </label>
+            <select class="proc-mini-select" id="procImportModo" style="width:220px">
+              <option value="agregar">Agregar a los existentes</option>
+              <option value="reemplazar">Reemplazar todos los procesos</option>
+            </select>
+            <button class="btn btn-primary btn-sm" id="btnConfirmImport" onclick="confirmarImportProcesos()" style="display:none">✓ Importar</button>
+            <button class="btn btn-secondary btn-sm" onclick="cancelarImportProc()">✕ Cancelar</button>
+          </div>
+          <div style="margin-top:10px;font-size:12px;color:var(--muted)" id="procImportPreview"></div>
+          <div style="font-size:11px;color:var(--error);margin-top:6px;display:none" id="procImportErr"></div>
+        </div>
+
+        <!-- Formulario agregar proceso (solo admin) -->
+        <div class="proc-form" id="procForm">
+          <div style="font-weight:600;font-size:13px;color:var(--navy);margin-bottom:10px" id="procFormTitle">Registrar proceso de acreditación</div>
+          <div class="proc-form-grid">
+            <div>
+              <span class="proc-mini-label">Prestador Institucional Evaluado *</span>
+              <input type="text" class="proc-mini-input" id="procNombre" placeholder="Ej: Clínica Los Andes">
+            </div>
+            <div>
+              <span class="proc-mini-label">N° Solicitud de Acreditación *</span>
+              <input type="text" class="proc-mini-input" id="procResolucion" placeholder="Ej: SA-2024-0123">
+            </div>
+            <div>
+              <span class="proc-mini-label">Fecha del proceso</span>
+              <input type="date" class="proc-mini-input" id="procFecha">
+            </div>
+            <div>
+              <span class="proc-mini-label">Resultado</span>
+              <select class="proc-mini-select" id="procResultado">
+                <option value="">— Seleccionar —</option>
+                <option value="Acreditado">Acreditado</option>
+                <option value="Acreditado con observaciones">Acreditado con observaciones</option>
+                <option value="No acreditado">No acreditado</option>
+              </select>
+            </div>
+            <div class="full">
+              <span class="proc-mini-label">Evaluadores en terreno</span>
+              <div id="procEvalWrap" style="border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--white);min-height:38px">
+                <div id="procEvalTags" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px"></div>
+                <input type="text" id="procEvalInput" class="proc-mini-input"
+                  style="border:none;padding:0;height:26px;font-size:12.5px;background:transparent;width:100%;outline:none"
+                  placeholder="Escriba nombre o RUT y presione Enter para agregar..."
+                  onkeydown="if(event.key==='Enter'){event.preventDefault();addEvalFromInput();}">
+              </div>
+              <input type="hidden" id="procEvaluadores" value="">
+            </div>
+            <div class="full">
+              <span class="proc-mini-label">Observaciones (opcional)</span>
+              <input type="text" class="proc-mini-input" id="procObs" placeholder="Observaciones sobre el proceso...">
+            </div>
+          </div>
+          <input type="hidden" id="procEditIdx" value="-1">
+          <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+            <button class="btn btn-primary btn-sm" onclick="guardarProceso()">Guardar proceso</button>
+            <button class="btn btn-secondary btn-sm" onclick="cancelarProceso()">Cancelar</button>
+            <div style="font-size:11px;color:var(--error);display:none" id="procFormErr"></div>
+          </div>
+        </div>
+
+        <div class="mini-table-wrap" id="procTableWrap">
+          <table class="mini-table">
+            <thead><tr><th>#</th><th>Prestador / Institución</th><th>N° Solicitud</th><th>Fecha</th><th>Evaluadores en Terreno</th><th>Resultado</th><th>Observaciones</th><th id="procActHdr">Acciones</th></tr></thead>
+            <tbody id="efProcBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SUB-TAB: DOCUMENTOS -->
+      <div class="ent-tab-content" id="eftab-documentos">
+        <div style="margin-bottom:10px;font-size:12.5px;color:var(--muted)">
+          Documentos registrados para esta entidad. Para agregar documentos, ve a la pestaña <strong>Documentos</strong>.
+        </div>
+        <div id="efDocGrid" class="doc-grid"></div>
+        <div id="efDocEmpty" style="display:none;text-align:center;padding:28px;color:var(--muted);font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;font-size:13px;">
+          Sin documentos registrados para esta entidad.
+        </div>
+      </div>
+
+    </div><!-- /ent-ficha-body -->
+  </div><!-- /ent-ficha-panel -->
+
+</div><!-- /tab-entidades -->
+
+<!-- ===== PROCESOS DE ACREDITACIÓN (global) ===== -->
+<div class="panel" id="tab-procesos-global">
+
+  <!-- Top toolbar -->
+  <div style="display:flex;gap:9px;align-items:flex-end;margin-bottom:16px;flex-wrap:wrap;">
+    <div>
+      <label class="filter-label" style="font-size:9px;color:var(--muted);display:block;margin-bottom:3px;">Entidad Acreditadora</label>
+      <select class="filter-select" id="pgFiltroEntidad" style="width:210px;height:34px" onchange="renderProcesosGlobal()">
+        <option value="">Todas las entidades</option>
+      </select>
+    </div>
+    <div>
+      <label class="filter-label" style="font-size:9px;color:var(--muted);display:block;margin-bottom:3px;">Resultado</label>
+      <select class="filter-select" id="pgFiltroResultado" style="width:200px;height:34px" onchange="renderProcesosGlobal()">
+        <option value="">Todos los resultados</option>
+        <option value="Acreditado">Acreditado</option>
+        <option value="Acreditado con observaciones">Acreditado con observaciones</option>
+        <option value="No acreditado">No acreditado</option>
+      </select>
+    </div>
+    <div>
+      <label class="filter-label" style="font-size:9px;color:var(--muted);display:block;margin-bottom:3px;">Buscar prestador</label>
+      <input type="text" class="filter-input" id="pgFiltroBuscar" placeholder="Nombre del prestador..." style="width:210px;height:34px" oninput="renderProcesosGlobal()">
+    </div>
+    <div style="flex:1"></div>
+    <span id="pgCount" style="font-size:12px;color:var(--muted);align-self:center"></span>
+    <button class="btn btn-primary btn-sm admin-only" id="btnAddProcGlobal" onclick="toggleProcGlobalForm()">＋ Registrar proceso</button>
+    <button class="btn btn-secondary btn-sm" onclick="exportarProcesosGlobalPDF()">⬇ PDF</button>
+    <button class="btn btn-secondary btn-sm" onclick="exportarProcesosGlobalExcel()">⬇ Excel</button>
+  </div>
+
+  <!-- Inline add/edit form -->
+  <div class="proc-form" id="procGlobalForm" style="margin-bottom:16px">
+    <div style="font-weight:600;font-size:13px;color:var(--navy);margin-bottom:12px" id="pgFormTitle">Registrar proceso de acreditación</div>
+    <div class="proc-form-grid" style="grid-template-columns:1fr 1fr 1fr">
+      <div>
+        <span class="proc-mini-label">Entidad Acreditadora *</span>
+        <select class="proc-mini-select" id="pgEntidad">
+          <option value="">— Seleccionar entidad —</option>
+        </select>
+      </div>
+      <div>
+        <span class="proc-mini-label">Prestador Institucional Evaluado *</span>
+        <input type="text" class="proc-mini-input" id="pgNombre" placeholder="Ej: Clínica Los Andes">
+      </div>
+      <div>
+        <span class="proc-mini-label">N° Solicitud de Acreditación *</span>
+        <input type="text" class="proc-mini-input" id="pgResolucion" placeholder="Ej: SA-2024-0123">
+      </div>
+      <div>
+        <span class="proc-mini-label">Fecha del proceso</span>
+        <input type="date" class="proc-mini-input" id="pgFecha">
+      </div>
+      <div>
+        <span class="proc-mini-label">Resultado</span>
+        <select class="proc-mini-select" id="pgResultado">
+          <option value="">— Seleccionar —</option>
+          <option value="Acreditado">Acreditado</option>
+          <option value="Acreditado con observaciones">Acreditado con observaciones</option>
+          <option value="No acreditado">No acreditado</option>
+        </select>
+      </div>
+      <div>
+        <span class="proc-mini-label">Observaciones</span>
+        <input type="text" class="proc-mini-input" id="pgObs" placeholder="Observaciones opcionales...">
+      </div>
+      <div class="full">
+        <span class="proc-mini-label">Evaluadores en terreno</span>
+        <div style="border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;background:var(--white);min-height:38px">
+          <div id="pgEvalTags" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px"></div>
+          <input type="text" id="pgEvalInput" class="proc-mini-input"
+            style="border:none;padding:0;height:26px;font-size:12.5px;background:transparent;width:100%;outline:none"
+            placeholder="Escriba nombre o RUT y presione Enter para agregar..."
+            onkeydown="if(event.key==='Enter'){event.preventDefault();addPgEval();}">
+        </div>
+        <input type="hidden" id="pgEvaluadores" value="">
+      </div>
+    </div>
+    <input type="hidden" id="pgEditEntidad" value="">
+    <input type="hidden" id="pgEditIdx" value="-1">
+    <div style="display:flex;gap:8px;align-items:center;margin-top:4px">
+      <button class="btn btn-primary btn-sm" onclick="guardarProcesoGlobal()">Guardar proceso</button>
+      <button class="btn btn-secondary btn-sm" onclick="cancelarProcGlobal()">Cancelar</button>
+      <div style="font-size:11px;color:var(--error);display:none" id="pgFormErr"></div>
+    </div>
+  </div>
+
+  <!-- Empty states -->
+  <div id="pgEmpty" style="display:none;text-align:center;padding:48px 20px">
+    <div style="font-size:32px;margin-bottom:10px;opacity:.4">📋</div>
+    <div style="font-family:'Inter',sans-serif;font-weight:600;font-size:15px;color:var(--navy);margin-bottom:4px">Sin procesos registrados</div>
+    <div style="font-size:12.5px;color:var(--muted)">Los procesos se registran desde esta pestaña o desde la ficha de cada entidad.</div>
+  </div>
+  <div id="pgNoMatch" style="display:none;text-align:center;padding:32px;color:var(--muted);font-size:13px">Sin resultados para los filtros aplicados.</div>
+
+  <!-- Table -->
+  <div class="tcontainer" id="pgTableWrap">
+    <div class="tscroll">
+      <table class="grid">
+        <thead>
+          <tr>
+            <th style="width:32px">#</th>
+            <th>Entidad Acreditadora</th>
+            <th>Prestador Institucional</th>
+            <th>N° Solicitud</th>
+            <th>Fecha</th>
+            <th>Evaluadores en Terreno</th>
+            <th>Resultado</th>
+            <th>Observaciones</th>
+            <th id="pgActHdr" class="admin-only">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="pgBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /tab-procesos-global -->
+
+<!-- ===== DOCUMENTOS ===== -->
+<div class="panel" id="tab-documentos">
+  <div class="admin-card" id="docUploadForm" style="margin-bottom:18px;display:none">
+    <h3>Registrar Documento</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div class="form-field" style="margin:0"><label>Nombre del documento</label><input type="text" id="docNombre" placeholder="Ej: Resolución acreditación 2024"></div>
+      <div class="form-field" style="margin:0"><label>Entidad acreditadora</label><select id="docEntidad" class="filter-select" style="height:36px"><option value="">Seleccionar entidad...</option></select></div>
+      <div class="form-field" style="margin:0"><label>Tipo de documento</label>
+        <select id="docTipo" class="filter-select" style="height:36px">
+          <option value="Resolución">Resolución</option><option value="Certificado">Certificado</option>
+          <option value="Contrato">Contrato</option><option value="Informe">Informe</option><option value="Otro">Otro</option>
+        </select></div>
+      <div class="form-field" style="margin:0"><label>Fecha del documento</label><input type="date" id="docFecha"></div>
+      <div class="form-field" style="margin:0;grid-column:1/-1"><label>Link de Google Drive</label><input type="url" id="docLink" placeholder="https://drive.google.com/file/d/..."></div>
+      <div class="form-field" style="margin:0;grid-column:1/-1"><label>Descripción (opcional)</label><input type="text" id="docDesc" placeholder="Breve descripción del contenido..."></div>
+    </div>
+    <input type="hidden" id="docEditIdx" value="-1">
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn btn-primary" onclick="guardarDocumento()">＋ Guardar documento</button>
+      <button class="btn btn-secondary" id="btnCancelarDoc" onclick="cancelarEditDoc()" style="display:none">✕ Cancelar</button>
+      <div style="flex:1"></div>
+      <div style="font-size:11px;color:var(--muted)">💡 Sube el PDF a Google Drive → "Obtener enlace" → pega aquí</div>
+    </div>
+    <div style="font-size:11px;color:var(--error);margin-top:6px;display:none" id="docFormErr"></div>
+  </div>
+  <div style="display:flex;gap:9px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+    <div><label class="filter-label" style="font-size:9px;color:var(--muted);display:block;margin-bottom:3px;">Entidad</label>
+      <select class="filter-select" id="docFiltroEntidad" style="width:200px;height:34px" onchange="renderDocumentos()"><option value="">Todas las entidades</option></select></div>
+    <div><label class="filter-label" style="font-size:9px;color:var(--muted);display:block;margin-bottom:3px;">Tipo</label>
+      <select class="filter-select" id="docFiltroTipo" style="width:150px;height:34px" onchange="renderDocumentos()">
+        <option value="">Todos los tipos</option><option value="Resolución">Resolución</option>
+        <option value="Certificado">Certificado</option><option value="Contrato">Contrato</option>
+        <option value="Informe">Informe</option><option value="Otro">Otro</option>
+      </select></div>
+    <div><label class="filter-label" style="font-size:9px;color:var(--muted);display:block;margin-bottom:3px;">Buscar</label>
+      <input type="text" class="filter-input" id="docFiltroTexto" placeholder="Buscar por nombre..." style="width:200px;height:34px" oninput="renderDocumentos()"></div>
+    <div style="flex:1"></div>
+    <span id="docCount" style="font-size:12px;color:var(--muted)"></span>
+  </div>
+  <div class="docs-empty" id="docsEmpty">Sin documentos registrados para los filtros seleccionados.</div>
+  <div class="docs-none" id="docsNone">
+    <div style="font-size:32px;margin-bottom:8px">📄</div>
+    <div style="font-family:'Inter',sans-serif;font-weight:600;letter-spacing:-.3px;font-size:15px;color:var(--navy);margin-bottom:4px">Sin documentos registrados</div>
+    <div style="font-size:12px">El administrador puede agregar documentos desde esta misma pestaña.</div>
+  </div>
+  <div class="doc-grid" id="docGrid"></div>
+</div>
+
+<!-- ===== BASE DE DATOS ===== -->
+<div class="panel" id="tab-base">
+  <div class="toolbar">
+    <button class="btn btn-primary btn-sm" onclick="agregarFila()">＋ Nueva fila</button>
+    <button class="btn btn-green btn-sm" onclick="exportarExcel()">⬇ Descargar Excel</button>
+    <div class="sp"></div>
+    <span class="tinfo" id="tableInfo">Sin datos cargados</span>
+  </div>
+  <div class="upload-zone" id="uploadZoneBase">
+    <input type="file" id="fileInputBase" accept=".xlsx,.xls,.csv">
+    <div style="font-size:22px;margin-bottom:6px">📂</div>
+    <h3>Cargar o reemplazar base de datos</h3>
+    <p>Excel (.xlsx) o CSV</p>
+    <div class="upstatus" id="uploadStatusBase"></div>
+  </div>
+  <div class="tcontainer"><div class="tscroll">
+    <table class="grid"><thead id="gridHead"></thead><tbody id="gridBody"></tbody></table>
+  </div></div>
+  <button class="addbtn" onclick="agregarFila()">＋ Agregar fila</button>
+  <p class="hint">💡 Haz clic en cualquier celda para editar · Solo visible para administradores</p>
+</div>
+
+<!-- ===== ADMINISTRACIÓN ===== -->
+<div class="panel" id="tab-admin">
+  <div class="admin-grid">
+    <div class="admin-card">
+      <h3>Crear Usuario</h3>
+      <div class="form-field"><label>Nombre completo</label><input type="text" id="newUserName" placeholder="Ej: María González"></div>
+      <div class="form-field"><label>Usuario (login)</label><input type="text" id="newUserLogin" placeholder="Ej: mgonzalez"></div>
+      <div class="form-field"><label>Contraseña</label><input type="password" id="newUserPass" placeholder="Mínimo 4 caracteres"></div>
+      <div class="form-field"><label>Rol</label>
+        <select id="newUserRole">
+          <option value="viewer">Solo lectura — visualiza todo, sin editar</option>
+          <option value="editor">Editor — puede cargar datos y registrar procesos</option>
+          <option value="admin">Administrador — acceso completo</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" style="width:100%" onclick="crearUsuario()">＋ Crear usuario</button>
+      <div style="font-size:11px;color:var(--error);margin-top:8px;display:none" id="userFormErr"></div>
+    </div>
+    <div class="admin-card">
+      <h3>Usuarios del sistema</h3>
+      <div style="overflow-x:auto">
+        <table class="users-table" id="usersTable">
+          <thead><tr><th>Nombre</th><th>Usuario</th><th>Rol</th><th>Acciones</th></tr></thead>
+          <tbody id="usersBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="admin-card" style="margin-bottom:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h3 style="margin-bottom:0">Registro de Actividad</h3>
+      <button class="btn btn-secondary btn-sm" onclick="limpiarLog()">🗑 Limpiar log</button>
+    </div>
+    <div class="tcontainer"><div class="tscroll" style="max-height:380px">
+      <table class="log-table">
+        <thead><tr><th>Fecha y Hora</th><th>Usuario</th><th>Acción</th><th>Detalle</th></tr></thead>
+        <tbody id="logBody"></tbody>
+      </table>
+    </div></div>
+    <p class="hint" style="margin-top:8px">📋 Registro de todas las búsquedas, descargas y acciones realizadas</p>
+  </div>
+</div>
+
+</main>
+</div>
+
+<div class="sbanner" id="saveBanner"><div class="sdot"></div><span id="saveBannerMsg">Guardado</span></div>
+
+<script>
+// ══════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════
+var database=[],columns=[],filteredData=[],currentUser=null,activityLog=[],bannerTimer;
+var users=[{login:'admin',pass:'admin123',name:'Administrador',role:'admin'},{login:'usuario1',pass:'seos2024',name:'Usuario Demo',role:'viewer'}];
+var entidades=[{nombre:"Acredita Chile S.p.A.",fecha:"",nregistro:"1",rut:"76.042.423-4",nombreFantasia:"Instituto Chileno de Acreditación en Salud (ICHAES)",direccion:"Alonso de Córdova N° 5870, of. 1103, Las Condes, Santiago, RM",telefono:"+56 2 32451390",email:"ricardo.rubio@acreditachilespa.cl",web:"www.ichaes.cl",repLegal:"Ricardo Javier Rubio Pérez",emailRepLegal:"ricardo.rubio@ichaes.cl",urlRegistro:"https://www.superdesalud.gob.cl/registro/acredita-chile-s-p-a/",notas:"N° de registro: 1. Fuente: Registro público Superintendencia de Salud."},{nombre:"Saludmanagement Asesores en Salud Limitada",fecha:"",nregistro:"2",urlRegistro:"https://www.superdesalud.gob.cl/registro/saludmanagement-s-a/",notas:"N° de registro: 2. Fuente: Registro público Superintendencia de Salud."},{nombre:"Asesorías en Gestión en Salud Limitada",fecha:"",nregistro:"3",rut:"76.055.822-2",nombreFantasia:"AGS Limitada",direccion:"1 Oriente N°304, Oficina 102, Viña del Mar, Región de Valparaíso",telefono:"+56 9 95995769",email:"ana.benavente@agsalud.cl",web:"www.agsalud.cl",repLegal:"Ana Eugenia Benavente Espinoza",emailRepLegal:"ana.benavente@agsalud.cl",urlRegistro:"https://www.superdesalud.gob.cl/registro/asesorias-en-gestion-en-salud-spa/",notas:"N° de registro: 3. Fuente: Registro público Superintendencia de Salud."},{nombre:"Acreditación en Salud Limitada",fecha:"",nregistro:"6",urlRegistro:"https://www.superdesalud.gob.cl/registro/acreditacion-en-salud-limitada/",notas:"N° de registro: 6. Fuente: Registro público Superintendencia de Salud."},{nombre:"Asesorías en Calidad y Acreditación Limitada",fecha:"",nregistro:"10",urlRegistro:"https://www.superdesalud.gob.cl/registro/asesorias-en-calidad-y-acreditacion-limitada/",notas:"N° de registro: 10. Fuente: Registro público Superintendencia de Salud."},{nombre:"Hurtado y Carrasco Limitada",fecha:"",nregistro:"11",urlRegistro:"https://www.superdesalud.gob.cl/registro/hurtado-y-carrasco-spa/",notas:"N° de registro: 11. Fuente: Registro público Superintendencia de Salud."},{nombre:"Acreditaciones Berta Antonieta Torres Morales E.I.R.L",fecha:"",nregistro:"14",urlRegistro:"https://www.superdesalud.gob.cl/registro/acreditaciones-berta-antonieta-torres-morales-e-i-r-l/",notas:"N° de registro: 14. Fuente: Registro público Superintendencia de Salud."},{nombre:"Sandoval y Poblete Limitada (Higea Salud Limitada)",fecha:"",nregistro:"16",urlRegistro:"https://www.superdesalud.gob.cl/registro/sepulveda-y-sandoval-limitada-higea-salud-limitada/",notas:"N° de registro: 16. Fuente: Registro público Superintendencia de Salud."},{nombre:"GCA Salud Limitada",fecha:"",nregistro:"18",urlRegistro:"https://www.superdesalud.gob.cl/registro/gca-salud-limitada/",notas:"N° de registro: 18. Fuente: Registro público Superintendencia de Salud."},{nombre:"Ausus Sum Management Consultores Limitada",fecha:"",nregistro:"19",urlRegistro:"https://www.superdesalud.gob.cl/registro/ausus-sum-management-consultores-limitada/",notas:"N° de registro: 19. Fuente: Registro público Superintendencia de Salud."},{nombre:"Sea Salud Limitada",fecha:"",nregistro:"20",urlRegistro:"https://www.superdesalud.gob.cl/registro/sea-salud-limitada/",notas:"N° de registro: 20. Fuente: Registro público Superintendencia de Salud."},{nombre:"Asesorías en Salud SpA",fecha:"",nregistro:"21",urlRegistro:"https://www.superdesalud.gob.cl/registro/asesorias-en-salud-spa/",notas:"N° de registro: 21. Fuente: Registro público Superintendencia de Salud."},{nombre:"Acreditadora GECASEP Limitada",fecha:"",nregistro:"26",urlRegistro:"https://www.superdesalud.gob.cl/registro/acreditadora-gecasep-limitada/",notas:"N° de registro: 26. Fuente: Registro público Superintendencia de Salud."},{nombre:"EvaluaQ Limitada",fecha:"",nregistro:"28",urlRegistro:"https://www.superdesalud.gob.cl/registro/evaluaq-limitada/",notas:"N° de registro: 28. Fuente: Registro público Superintendencia de Salud."},{nombre:"Quality Health SpA",fecha:"",nregistro:"29",urlRegistro:"https://www.superdesalud.gob.cl/registro/quality-health-spa/",notas:"N° de registro: 29. Fuente: Registro público Superintendencia de Salud."},{nombre:"Leonora Monares Arce Salud E.I.R.L.",fecha:"",nregistro:"31",urlRegistro:"https://www.superdesalud.gob.cl/registro/leonora-monares-arce-salud-e-i-r-l/",notas:"N° de registro: 31. Fuente: Registro público Superintendencia de Salud."},{nombre:"GCS Salud Limitada",fecha:"",nregistro:"32",urlRegistro:"https://www.superdesalud.gob.cl/registro/gcs-salud-limitada/",notas:"N° de registro: 32. Fuente: Registro público Superintendencia de Salud."},{nombre:"Acredita Salud Limitada",fecha:"",nregistro:"33",urlRegistro:"https://www.superdesalud.gob.cl/registro/acredita-salud-limitada/",notas:"N° de registro: 33. Fuente: Registro público Superintendencia de Salud."},{nombre:"Avanzaencalidad Limitada",fecha:"",nregistro:"35",urlRegistro:"https://www.superdesalud.gob.cl/registro/avanzaencalidad-limitada/",notas:"N° de registro: 35. Fuente: Registro público Superintendencia de Salud."},{nombre:"Asegura SpA",fecha:"",nregistro:"37",urlRegistro:"https://www.superdesalud.gob.cl/registro/asegura-spa/",notas:"N° de registro: 37. Fuente: Registro público Superintendencia de Salud."},{nombre:"Coesa Limitada",fecha:"",nregistro:"38",urlRegistro:"https://www.superdesalud.gob.cl/registro/coesa-limitada/",notas:"N° de registro: 38. Fuente: Registro público Superintendencia de Salud."},{nombre:"AMH Calidad Salud Limitada",fecha:"",nregistro:"39",urlRegistro:"https://www.superdesalud.gob.cl/registro/amh-calidad-salud-eirl/",notas:"N° de registro: 39. Fuente: Registro público Superintendencia de Salud."},{nombre:"Calidad y Seguridad en Gestión de Salud SpA",fecha:"",nregistro:"40",urlRegistro:"https://www.superdesalud.gob.cl/registro/calidad-y-seguridad-en-gestion-de-salud-spa/",notas:"N° de registro: 40. Fuente: Registro público Superintendencia de Salud."},{nombre:"Acreditadores de Salud Sociedad de Profesionales Limitada (Kümelkalen Limitada)",fecha:"",nregistro:"41",urlRegistro:"https://www.superdesalud.gob.cl/registro/acreditadores-de-salud-spa-kumelkalen-spa/",notas:"N° de registro: 41. Fuente: Registro público Superintendencia de Salud."},{nombre:"Gesmedic Limitada",fecha:"",nregistro:"42",urlRegistro:"https://www.superdesalud.gob.cl/registro/gesmedic-spa/",notas:"N° de registro: 42. Fuente: Registro público Superintendencia de Salud."},{nombre:"Grupo Creixer SpA.",fecha:"",nregistro:"43",urlRegistro:"https://www.superdesalud.gob.cl/registro/grupo-creixer-spa/",notas:"N° de registro: 43. Fuente: Registro público Superintendencia de Salud."},{nombre:"Activa Calidad Limitada",fecha:"",nregistro:"44",urlRegistro:"https://www.superdesalud.gob.cl/registro/activa-calidad-limitada/",notas:"N° de registro: 44. Fuente: Registro público Superintendencia de Salud."},{nombre:"APIS Limitada",fecha:"",nregistro:"45",urlRegistro:"https://www.superdesalud.gob.cl/registro/apis-limitada/",notas:"N° de registro: 45. Fuente: Registro público Superintendencia de Salud."},{nombre:"AS Limitada",fecha:"",nregistro:"46",urlRegistro:"https://www.superdesalud.gob.cl/registro/as-limitada/",notas:"N° de registro: 46. Fuente: Registro público Superintendencia de Salud."},{nombre:"Acreditaciones Prosalud Limitada",fecha:"",nregistro:"47",urlRegistro:"https://www.superdesalud.gob.cl/registro/prosalud-s-p-a/",notas:"N° de registro: 47. Fuente: Registro público Superintendencia de Salud."},{nombre:"Ircatec Limitada",fecha:"",nregistro:"48",urlRegistro:"https://www.superdesalud.gob.cl/registro/ircatec-spa/",notas:"N° de registro: 48. Fuente: Registro público Superintendencia de Salud."},{nombre:"Icarus Akredita SpA",fecha:"",nregistro:"50",urlRegistro:"https://www.superdesalud.gob.cl/registro/icarus-akredita-spa/",notas:"N° de registro: 50. Fuente: Registro público Superintendencia de Salud."},{nombre:"Qualis SpA",fecha:"",nregistro:"51",urlRegistro:"https://www.superdesalud.gob.cl/registro/qualis-spa/",notas:"N° de registro: 51. Fuente: Registro público Superintendencia de Salud."},{nombre:"Alta Gestión en Salud Limitada",fecha:"",nregistro:"52",urlRegistro:"https://www.superdesalud.gob.cl/registro/alta-gestion-en-salud-limitada/",notas:"N° de registro: 52. Fuente: Registro público Superintendencia de Salud."},{nombre:"ENC Acredita Limitada",fecha:"",nregistro:"53",urlRegistro:"https://www.superdesalud.gob.cl/registro/enc-acredita-limitada/",notas:"N° de registro: 53. Fuente: Registro público Superintendencia de Salud."},{nombre:"GM Calidad SpA",fecha:"",nregistro:"54",urlRegistro:"https://www.superdesalud.gob.cl/registro/gm-calidad-spa/",notas:"N° de registro: 54. Fuente: Registro público Superintendencia de Salud."},{nombre:"Acreditación y Calidad Cordillera SpA",fecha:"",nregistro:"55",urlRegistro:"https://www.superdesalud.gob.cl/registro/acreditacion-y-calidad-cordillera-spa/",notas:"N° de registro: 55. Fuente: Registro público Superintendencia de Salud."},{nombre:"Hellas SpA",fecha:"",nregistro:"56",urlRegistro:"https://www.superdesalud.gob.cl/registro/hellas-spa/",notas:"N° de registro: 56. Fuente: Registro público Superintendencia de Salud."},{nombre:"Solertia M.A.S.",fecha:"",nregistro:"57",urlRegistro:"https://www.superdesalud.gob.cl/registro/solertia-m-a-s/",notas:"N° de registro: 57. Fuente: Registro público Superintendencia de Salud."},{nombre:"ACS Salud SpA",fecha:"",nregistro:"58",urlRegistro:"https://www.superdesalud.gob.cl/registro/acs-salud-spa/",notas:"N° de registro: 58. Fuente: Registro público Superintendencia de Salud."}];
+var documentos=[];
+var procesos={};        // { entidadNombre: [{nombre,fecha,resultado,resolucion,obs,ingresadoPor,ingresadoFecha}, ...] }
+var currentEntidadIdx=null;
+
+// ── AUTH ──
+// Login — form onsubmit handles mobile; JS listeners as backup
+(function(){
+  var btn=document.getElementById('loginBtn');
+  var form=document.getElementById('loginForm');
+  var passEl=document.getElementById('loginPass');
+  var userEl=document.getElementById('loginUser');
+  if(form)form.addEventListener('submit',function(e){e.preventDefault();doLogin();});
+  if(btn){
+    btn.addEventListener('click',function(e){e.preventDefault();doLogin();});
+    btn.addEventListener('touchend',function(e){e.preventDefault();doLogin();});
+  }
+  if(passEl)passEl.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();doLogin();}});
+  if(userEl)userEl.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();if(passEl)passEl.focus();}});
+})();
+function getRoleLabel(role){
+  return {admin:'Administrador',editor:'Editor',viewer:'Solo lectura'}[role]||'Usuario';
+}
+function canUpload(){return currentUser&&(isAdmin()||currentUser.role==='editor');}
+function canEdit(){return currentUser&&(isAdmin()||currentUser.role==='editor');}
+function isAdmin(){return currentUser&&currentUser.role==='admin';}
+
+function applyRoleUI(){
+  var role=currentUser?currentUser.role:'viewer';
+  // admin-only elements (Base de datos, Administración tabs, edit buttons)
+  document.querySelectorAll('.admin-only').forEach(function(el){
+    el.style.display=isAdmin()?'inline-flex':'none';
+  });
+  // editor-or-admin elements (upload, add procesos, add docs)
+  document.querySelectorAll('.editor-only').forEach(function(el){
+    el.style.display=canEdit()?'inline-flex':'none';
+  });
+  // Upload zone
+  document.getElementById('uploadZone').style.display=canUpload()?'block':'none';
+  // Entidades tab: visible to ALL roles (viewer can see list, but not edit)
+  var entTab=document.querySelector('.tab-btn[onclick*="entidades"]');
+  if(entTab){entTab.style.display='inline-flex';}
+  // Hide entidad add/edit form for non-editors
+  var entForm=document.getElementById('entForm');
+  if(entForm)entForm.style.display=canEdit()?'block':'none';
+  // noDataBanner
+  if(!canUpload()&&database.length===0){
+    document.getElementById('noDataBanner').style.display='block';
+  } else {
+    document.getElementById('noDataBanner').style.display='none';
+  }
+}
+
+function doLogin(){
+  var u=document.getElementById('loginUser').value.trim();
+  var p=document.getElementById('loginPass').value;
+  var errEl=document.getElementById('loginErr');
+  if(!u){errEl.textContent='Ingrese su usuario.';errEl.classList.add('visible');return;}
+  var found=users.find(function(x){return x.login===u&&x.pass===p;});
+  if(!found){errEl.textContent='Usuario o contraseña incorrectos.';errEl.classList.add('visible');document.getElementById('loginPass').value='';return;}
+  currentUser=found;
+  errEl.classList.remove('visible');
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('appShell').style.display='block';
+  document.getElementById('userName').textContent=found.name;
+  document.getElementById('userRoleLabel').textContent=getRoleLabel(found.role);
+  document.getElementById('userAvatar').textContent=found.name.charAt(0).toUpperCase();
+  applyRoleUI();
+  logAction('login','Inició sesión ('+getRoleLabel(found.role)+')');
+  renderUsersTable();renderLog();
+}
+function doLogout(){
+  logAction('login','Cerró sesión');currentUser=null;
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('appShell').style.display='none';
+  document.getElementById('loginUser').value='';document.getElementById('loginPass').value='';
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('tab-buscar').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(function(b,i){b.classList.toggle('active',i===0);});
+}
+
+// ── LOG ──
+function logAction(type,detail){
+  if(!currentUser)return;
+  var now=new Date();
+  activityLog.unshift({
+    datetime:now.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+now.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
+    user:currentUser.name+' ('+currentUser.login+')',type:type,detail:detail
+  });
+  renderLog();
+}
+function renderLog(){
+  var tbody=document.getElementById('logBody');if(!tbody)return;
+  if(!activityLog.length){tbody.innerHTML='<tr><td colspan="4" style="padding:20px;text-align:center;color:var(--muted);font-size:12px;">Sin actividad registrada</td></tr>';return;}
+  var labels={search:'Búsqueda',pdf:'Exportó PDF',filter:'Filtros',excel:'Exportó Excel',login:'Sesión'};
+  var icons={search:'🔍',pdf:'📄',filter:'🔎',excel:'📊',login:'👤'};
+  tbody.innerHTML=activityLog.map(function(e){
+    return '<tr><td>'+e.datetime+'</td><td>'+e.user+'</td><td><span class="log-action log-'+e.type+'">'+(icons[e.type]||'•')+' '+(labels[e.type]||e.type)+'</span></td><td>'+e.detail+'</td></tr>';
+  }).join('');
+}
+function limpiarLog(){if(!confirm('¿Limpiar todo el registro?'))return;activityLog=[];renderLog();showBanner('Log limpiado');}
+
+// ── USERS ──
+function renderUsersTable(){
+  var tbody=document.getElementById('usersBody');if(!tbody)return;
+  tbody.innerHTML=users.map(function(u,i){
+    return '<tr><td>'+u.name+'</td><td><code style="font-size:11px;background:var(--cream);padding:1px 6px;border-radius:4px">'+u.login+'</code></td>'
+      +'<td><span class="role-chip '+(u.role==='admin'?'chip-admin':u.role==='editor'?'chip-editor':'chip-user')+'">'+(getRoleLabel(u.role||'viewer'))+'</span></td>'
+      +'<td>'+(i===0?'<span style="font-size:11px;color:var(--muted)">—</span>':'<button class="btn btn-red btn-sm" onclick="eliminarUsuario('+i+')">✕</button>')+'</td></tr>';
+  }).join('');
+}
+function crearUsuario(){
+  var name=document.getElementById('newUserName').value.trim(),login=document.getElementById('newUserLogin').value.trim(),pass=document.getElementById('newUserPass').value,role=document.getElementById('newUserRole').value;
+  var errEl=document.getElementById('userFormErr');
+  if(!name||!login||!pass){errEl.textContent='Complete todos los campos.';errEl.style.display='block';return;}
+  if(pass.length<4){errEl.textContent='Contraseña mínimo 4 caracteres.';errEl.style.display='block';return;}
+  if(users.find(function(u){return u.login===login;})){errEl.textContent='Ese usuario ya existe.';errEl.style.display='block';return;}
+  errEl.style.display='none';users.push({login:login,pass:pass,name:name,role:role});
+  renderUsersTable();document.getElementById('newUserName').value='';document.getElementById('newUserLogin').value='';document.getElementById('newUserPass').value='';
+  logAction('login','Creó usuario: '+login);showBanner('Usuario "'+login+'" creado ✓');
+}
+function eliminarUsuario(idx){
+  if(!confirm('¿Eliminar usuario "'+users[idx].login+'"?'))return;
+  var r=users[idx].login;users.splice(idx,1);renderUsersTable();logAction('login','Eliminó usuario: '+r);showBanner('Usuario eliminado');
+}
+
+// ── TABS ──
+function showTab(name,btn){
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('tab-'+name).classList.add('active');btn.classList.add('active');
+  if(name==='base')renderGrid();
+  if(name==='filtros')populateFilterOptions();
+  if(name==='admin'){renderUsersTable();renderLog();}
+  if(name==='vigencia')renderVigenciaTab();
+  if(name==='entidades')renderEntidadesTab();
+  if(name==='documentos')renderDocumentosTab();
+}
+
+// ── UTILS ──
+function normRut(r){return String(r).replace(/\./g,'').replace(/-/g,'').trim().toUpperCase();}
+function fmtRut(r){var c=normRut(r);if(c.length<2)return r;var dv=c.slice(-1),nums=c.slice(0,-1);return nums.replace(/\B(?=(\d{3})+(?!\d))/g,'.')+'-'+dv;}
+function validRut(r){return /^\d{6,8}[0-9K]$/i.test(normRut(r));}
+function getVal(row,kws){var keys=Object.keys(row);for(var i=0;i<kws.length;i++){var kw=kws[i].toLowerCase();var m=keys.find(function(k){return k.toLowerCase().indexOf(kw)!==-1;});if(m!==undefined)return String(row[m]||'').trim();}return '';}
+function getValLow(row,kws){return getVal(row,kws).toLowerCase();}
+function showBanner(msg){var b=document.getElementById('saveBanner');document.getElementById('saveBannerMsg').textContent=msg;b.classList.add('visible');clearTimeout(bannerTimer);bannerTimer=setTimeout(function(){b.classList.remove('visible');},2500);}
+
+// ── DATE / VIGENCIA ──
+function parseDate(val){
+  if(!val||val==='')return null;var s=String(val).trim();
+  if(/^\d{4,5}$/.test(s)){var serial=parseInt(s);var d=new Date(Date.UTC(1899,11,30)+serial*86400000);return isNaN(d.getTime())?null:d;}
+  var m1=s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+  if(m1)return new Date(parseInt(m1[3]),parseInt(m1[2])-1,parseInt(m1[1]));
+  var m2=s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
+  if(m2)return new Date(parseInt(m2[1]),parseInt(m2[2])-1,parseInt(m2[3]));
+  var d2=new Date(s);return isNaN(d2.getTime())?null:d2;
+}
+function getVigenciaStatus(fechaVal){
+  var fecha=parseDate(fechaVal);if(!fecha)return null;
+  var expiry=new Date(fecha);expiry.setFullYear(expiry.getFullYear()+3);
+  var diffDays=Math.ceil((expiry-new Date())/(1000*60*60*24));
+  return{fecha:fecha,expiry:expiry,diffDays:diffDays,status:diffDays<0?'expired':diffDays<=180?'expiring':'valid'};
+}
+function formatDateCL(d){if(!d)return '—';return('0'+d.getDate()).slice(-2)+'/'+('0'+(d.getMonth()+1)).slice(-2)+'/'+d.getFullYear();}
+function showVigenciaBanner(fechaVal){
+  var banner=document.getElementById('vigBanner');banner.className='vig-banner';
+  var info=getVigenciaStatus(fechaVal);
+  if(!info){banner.classList.remove('visible');return;}
+  banner.classList.add('visible');
+  var icon=document.getElementById('vigBannerIcon'),title=document.getElementById('vigBannerTitle'),sub=document.getElementById('vigBannerSub');
+  if(info.status==='expired'){banner.classList.add('expired');icon.textContent='⛔';title.textContent='Vigencia VENCIDA';sub.textContent='Expiró el '+formatDateCL(info.expiry)+' (hace '+Math.abs(info.diffDays)+' días)';}
+  else if(info.status==='expiring'){banner.classList.add('expiring');icon.textContent='⚠️';title.textContent='Vigencia próxima a vencer';sub.textContent='Vence el '+formatDateCL(info.expiry)+' (en '+info.diffDays+' días)';}
+  else{banner.classList.add('valid');icon.textContent='✅';title.textContent='Vigencia activa';sub.textContent='Válida hasta el '+formatDateCL(info.expiry)+' ('+info.diffDays+' días restantes)';}
+}
+function setVigenciaField(fechaVal){
+  var vEl=document.getElementById('f-vigencia'),eEl=document.getElementById('f-vence');
+  var info=getVigenciaStatus(fechaVal);
+  if(!info){vEl.textContent='Sin fecha';vEl.classList.add('empty');eEl.textContent='—';eEl.classList.add('empty');return;}
+  vEl.classList.remove('empty');eEl.classList.remove('empty');eEl.textContent=formatDateCL(info.expiry);
+  if(info.status==='expired')vEl.innerHTML='<span class="vig-exp">⛔ Vencida</span>';
+  else if(info.status==='expiring')vEl.innerHTML='<span class="vig-warn">⚠️ Por vencer</span>';
+  else vEl.innerHTML='<span class="vig-ok">✅ Vigente</span>';
+}
+
+// ── FILE UPLOAD ──
+function setupUpload(inputId,statusId){var inp=document.getElementById(inputId);if(!inp)return;inp.addEventListener('change',function(){if(this.files[0])processFile(this.files[0],statusId);});}
+setupUpload('fileInput','uploadStatus');setupUpload('fileInputBase','uploadStatusBase');
+['uploadZone','uploadZoneBase'].forEach(function(zid){
+  var z=document.getElementById(zid);if(!z)return;
+  z.addEventListener('dragover',function(e){e.preventDefault();z.classList.add('drag-over');});
+  z.addEventListener('dragleave',function(){z.classList.remove('drag-over');});
+  z.addEventListener('drop',function(e){e.preventDefault();z.classList.remove('drag-over');var f=e.dataTransfer.files[0];if(f)processFile(f,zid==='uploadZone'?'uploadStatus':'uploadStatusBase');});
+});
+function findHeaderRow(ws){
+  // Scan rows to find the one that starts with a cell containing "N°" or "n°"
+  var range=XLSX.utils.decode_range(ws['!ref']||'A1:A1');
+  for(var r=range.s.r;r<=Math.min(range.e.r,30);r++){
+    // Check each cell in this row for "N°"
+    for(var c=range.s.c;c<=Math.min(range.e.c,5);c++){
+      var addr=XLSX.utils.encode_cell({r:r,c:c});
+      var cell=ws[addr];
+      if(cell){
+        var val=String(cell.v||'').trim().toLowerCase().replace(/\s/g,'');
+        if(val==='n°'||val==='n#'||val==='nro'||val==='num'||val==='numero'||val==='número'||val==='no.'||val===''+'n\u00b0'){
+          return r; // return 0-based row index
+        }
+      }
+    }
+  }
+  return 0; // default: first row
+}
+function processFile(file,statusId){
+  var reader=new FileReader();var ext=file.name.split('.').pop().toLowerCase();
+  var st=document.getElementById(statusId);
+  st.textContent='⏳ Leyendo archivo...';st.classList.add('visible');
+  reader.onload=function(e){
+    // Defer heavy parsing to next tick so UI can update first
+    setTimeout(function(){
+      try{
+        var wb=ext==='csv'?XLSX.read(e.target.result,{type:'string',raw:false}):XLSX.read(e.target.result,{type:'array',raw:false,cellDates:false});
+        var ws=wb.Sheets[wb.SheetNames[0]];
+        var headerRow=findHeaderRow(ws);
+        var data=XLSX.utils.sheet_to_json(ws,{defval:'',range:headerRow,raw:false});
+        // Remove completely empty rows
+        data=data.filter(function(row){
+          var vals=Object.values(row);
+          for(var i=0;i<vals.length;i++){if(String(vals[i]).trim()!=='')return true;}
+          return false;
+        });
+        database=data;columns=data.length>0?Object.keys(data[0]):[];
+        var skipped=headerRow>0?' · omitidas '+headerRow+' fila'+(headerRow>1?'s':'')+' de cabecera':'';
+        st.textContent='✓ '+file.name+' · '+data.length+' registros'+skipped;
+        updateTableInfo();
+        document.getElementById('noDataBanner').style.display='none';
+        logAction('login','Cargó archivo: '+file.name+' ('+data.length+' registros)');
+        if(document.getElementById('tab-vigencia').classList.contains('active'))renderVigenciaTab();
+        showBanner('✓ '+data.length+' registros cargados');
+      }catch(err){st.textContent='';alert('Error al leer el archivo: '+err.message);}
+    },30);
+  };
+  ext==='csv'?reader.readAsText(file,'UTF-8'):reader.readAsArrayBuffer(file);
+}
+
+// ── SEARCH ──
+document.getElementById('rutInput').addEventListener('input',function(){this.value=this.value.replace(/[^0-9kK\-\.]/g,'');this.classList.remove('invalid');document.getElementById('validationMsg').classList.remove('visible');});
+document.getElementById('rutInput').addEventListener('keydown',function(e){if(e.key==='Enter')buscarEvaluador();});
+function buscarEvaluador(){
+  var rutRaw=document.getElementById('rutInput').value.trim();
+  var vm=document.getElementById('validationMsg');
+  document.getElementById('notFound').classList.remove('visible');document.getElementById('resultCard').classList.remove('visible');
+  if(!rutRaw){document.getElementById('rutInput').classList.add('invalid');vm.textContent='Ingrese un RUT.';vm.classList.add('visible');return;}
+  if(!validRut(rutRaw)){document.getElementById('rutInput').classList.add('invalid');vm.textContent='Formato inválido. Ej: 12.345.678-9';vm.classList.add('visible');return;}
+  if(!database.length){alert('No hay datos cargados.');return;}
+  var cs=normRut(rutRaw);
+  var keys=Object.keys(database[0]);
+  var rutCol=keys.find(function(k){return k.toLowerCase().indexOf('rut')!==-1;});
+  var record=database.find(function(row){
+    if(rutCol)return normRut(String(row[rutCol]))===cs;
+    return Object.values(row).some(function(v){return normRut(String(v))===cs;});
+  });
+  if(!record){document.getElementById('notFound').classList.add('visible');logAction('search','RUT no encontrado: '+fmtRut(rutRaw));return;}
+  var nombre=getVal(record,['nombre']),rol=getVal(record,['rol','tipo']),resultado=getVal(record,['resultado','examen']);
+  document.getElementById('f-nombre').textContent=nombre||'—';
+  document.getElementById('f-rut-header').textContent=fmtRut(rutRaw);
+  document.getElementById('f-rut').textContent=fmtRut(rutRaw);
+  var badge=document.getElementById('f-rol-badge');badge.className='rbadge';
+  if(rol.toLowerCase().indexOf('director')!==-1){badge.classList.add('rb-dir');badge.textContent='Director Técnico';}
+  else if(rol.toLowerCase().indexOf('evaluador')!==-1){badge.classList.add('rb-eval');badge.textContent='Evaluador';}
+  else{badge.classList.add('rb-def');badge.textContent=rol||'—';}
+  setField('f-edad',getVal(record,['edad']));setField('f-region',getVal(record,['región','region']));
+  setField('f-profesion',getVal(record,['profesión','profesion']));setField('f-mencion',getVal(record,['mención','mencion']));
+  setField('f-registro',getVal(record,['registro','n°','numero']));setField('f-entidades',getVal(record,['entidad','acreditad']));
+  setField('f-rol',rol);
+  var resEl=document.getElementById('f-resultado');var rv=resultado.toLowerCase();
+  if(rv.indexOf('aprobado')!==-1)resEl.innerHTML='<span class="ebadge epass">✓ '+resultado+'</span>';
+  else if(rv.indexOf('reprobado')!==-1)resEl.innerHTML='<span class="ebadge efail">✗ '+resultado+'</span>';
+  else resEl.textContent=resultado||'—';
+  setField('f-resolucion',getVal(record,['resolución','resolucion','resol']));
+  var fechaVal=getVal(record,['fecha']);
+  setField('f-fecha',fechaVal);showVigenciaBanner(fechaVal);setVigenciaField(fechaVal);
+  setField('f-exclusivo',getVal(record,['exclusivo','compartido']));setField('f-experiencia',getVal(record,['experiencia','clínica','clinica','años']));
+  setField('f-proyectos',getVal(record,['proyecto','seos']));
+  document.getElementById('resultCard').classList.add('visible');document.getElementById('resultCard').scrollIntoView({behavior:'smooth',block:'nearest'});
+  logAction('search','Buscó RUT: '+fmtRut(rutRaw)+' — '+nombre);
+}
+function setField(id,val){var el=document.getElementById(id);if(val!==''&&val!==null&&val!==undefined&&String(val)!=='undefined'){el.textContent=val;el.classList.remove('empty');}else{el.textContent='Sin información';el.classList.add('empty');}}
+function limpiar(){document.getElementById('rutInput').value='';document.getElementById('rutInput').classList.remove('invalid');document.getElementById('validationMsg').classList.remove('visible');document.getElementById('notFound').classList.remove('visible');document.getElementById('resultCard').classList.remove('visible');document.getElementById('vigBanner').classList.remove('visible');}
+
+// ── GRID ──
+var gridPage=0;var gridPageSize=80;
+function renderGrid(){
+  gridPage=0;
+  var head=document.getElementById('gridHead'),body=document.getElementById('gridBody');
+  head.innerHTML='';body.innerHTML='';
+  if(!database.length){body.innerHTML='<tr><td colspan="3" style="padding:28px;text-align:center;color:var(--muted);font-size:12px;">Sin datos. Cargue un archivo arriba.</td></tr>';updateTableInfo();return;}
+  // Header
+  var tr=document.createElement('tr');
+  var tn=document.createElement('th');tn.className='cnum';tn.textContent='#';tr.appendChild(tn);
+  columns.forEach(function(col){var th=document.createElement('th');th.textContent=col;tr.appendChild(th);});
+  var ta=document.createElement('th');ta.textContent='';tr.appendChild(ta);head.appendChild(tr);
+  renderGridPage();
+  updateTableInfo();
+}
+function renderGridPage(){
+  var body=document.getElementById('gridBody');
+  var start=gridPage*gridPageSize;
+  var end=Math.min(start+gridPageSize,database.length);
+  // Remove existing pagination row if present
+  var existingPager=document.getElementById('gridPager');if(existingPager)existingPager.remove();
+  // Append rows for this page
+  var frag=document.createDocumentFragment();
+  for(var idx=start;idx<end;idx++){frag.appendChild(buildRow(database[idx],idx));}
+  body.appendChild(frag);
+  // Add pagination controls if needed
+  if(database.length>gridPageSize){
+    var totalPages=Math.ceil(database.length/gridPageSize);
+    var pager=document.createElement('tr');pager.id='gridPager';
+    var td=document.createElement('td');td.colSpan=columns.length+2;
+    td.style.cssText='padding:10px 14px;background:var(--cream);border-top:2px solid var(--border);text-align:center;';
+    var showing=Math.min((gridPage+1)*gridPageSize,database.length);
+    td.innerHTML='<span style="font-size:12px;color:var(--muted)">Mostrando '+(gridPage*gridPageSize+1)+'–'+showing+' de '+database.length+' registros</span>'
+      +'<div style="display:inline-flex;gap:6px;margin-left:14px">'
+      +(gridPage>0?'<button class="btn btn-secondary btn-xs" onclick="gridPrevPage()">← Anterior</button>':'')
+      +(gridPage<totalPages-1?'<button class="btn btn-primary btn-xs" onclick="gridNextPage()">Siguiente →</button>':'')
+      +'</div>';
+    pager.appendChild(td);body.appendChild(pager);
+  }
+}
+function gridNextPage(){
+  var totalPages=Math.ceil(database.length/gridPageSize);
+  if(gridPage<totalPages-1){
+    // Remove current page rows and render next
+    var body=document.getElementById('gridBody');
+    while(body.firstChild)body.removeChild(body.firstChild);
+    gridPage++;renderGridPage();
+    var s=document.querySelector('#tab-base .tscroll');if(s)s.scrollTop=0;
+  }
+}
+function gridPrevPage(){
+  if(gridPage>0){
+    var body=document.getElementById('gridBody');
+    while(body.firstChild)body.removeChild(body.firstChild);
+    gridPage--;renderGridPage();
+    var s=document.querySelector('#tab-base .tscroll');if(s)s.scrollTop=0;
+  }
+}
+function buildRow(row,idx){
+  var tr=document.createElement('tr');
+  var tn=document.createElement('td');tn.className='cnum';tn.textContent=idx+1;tr.appendChild(tn);
+  columns.forEach(function(col){
+    var td=document.createElement('td');var inp=document.createElement('input');inp.type='text';inp.className='ci';
+    inp.value=row[col]!==undefined?String(row[col]):'';inp.title=inp.value;
+    inp.addEventListener('change',(function(i,c){return function(){database[i][c]=this.value;this.title=this.value;showBanner('Cambio guardado ✓');};})(idx,col));
+    td.appendChild(inp);tr.appendChild(td);
+  });
+  var ta=document.createElement('td');ta.innerHTML='<div class="racts"><button class="rbtn rbtn-del" onclick="eliminarFila('+idx+')">🗑</button></div>';tr.appendChild(ta);return tr;
+}
+function agregarFila(){
+  if(!columns.length)columns=['RUT','Nombre completo','Profesión','Mención','Edad','Región','Número de registro','Entidades acreditadoras','Rol','Resultado del examen','N° resolución examen','Fecha de resolución','Exclusivo o compartido','Años de experiencia clínica','Proyectos SEOS realizados'];
+  var r={};columns.forEach(function(c){r[c]='';});database.push(r);
+  // Jump to last page
+  gridPage=Math.floor((database.length-1)/gridPageSize);
+  renderGrid();
+  setTimeout(function(){var s=document.querySelector('#tab-base .tscroll');if(s)s.scrollTop=s.scrollHeight;var rows=document.querySelectorAll('#gridBody tr');var last=rows[rows.length-1];if(last){var inp=last.querySelector('input.ci');if(inp)inp.focus();}},60);
+  showBanner('Nueva fila agregada');
+}
+function eliminarFila(idx){
+  if(!confirm('¿Eliminar fila '+(idx+1)+'?'))return;
+  database.splice(idx,1);
+  // Stay on same page (or go back one if it's now empty)
+  var totalPages=Math.ceil(database.length/gridPageSize)||1;
+  if(gridPage>=totalPages)gridPage=totalPages-1;
+  renderGrid();showBanner('Fila eliminada');
+}
+function updateTableInfo(){var el=document.getElementById('tableInfo');el.textContent=!database.length?'Sin datos':database.length+' registro'+(database.length!==1?'s':'')+' · '+columns.length+' columnas';}
+function exportarExcel(){if(!database.length){alert('No hay datos.');return;}var wb=XLSX.utils.book_new();var ws=XLSX.utils.json_to_sheet(database);XLSX.utils.book_append_sheet(wb,ws,'Evaluadores');XLSX.writeFile(wb,'evaluadores_actualizados.xlsx');logAction('excel','Descargó base de datos');showBanner('Excel descargado ✓');}
+
+// ── FILTERS ──
+var FCOLS=[
+  {label:'Nombre',            kws:['nombre','nombre completo','nombres']},
+  {label:'Apellido',          kws:['apellido','apellidos','apellido paterno','apellido materno']},
+  {label:'RUT',               kws:['rut','run']},
+  {label:'Profesión',         kws:['profesión','profesion','carrera','titulo','título']},
+  {label:'Mención',           kws:['mención','mencion','especialidad']},
+  {label:'Condición Autorizada', kws:['rol','tipo de rol','condicion','condición','cargo']},
+  {label:'Entidad Acreditadora', kws:['entidad','entidades','acreditad']},
+  {label:'Estado',            kws:['estado','activo','vigencia','condicion']},
+  {label:'Exclusivo',         kws:['exclusivo','compartido','exclusivo o compartido']}
+];
+function populateFilterOptions(){
+  if(!database.length)return;var keys=Object.keys(database[0]);
+  var rCol=keys.find(function(k){return k.toLowerCase().indexOf('región')!==-1||k.toLowerCase().indexOf('region')!==-1;});
+  var pCol=keys.find(function(k){return k.toLowerCase().indexOf('profesión')!==-1||k.toLowerCase().indexOf('profesion')!==-1;});
+  var nregCol=keys.find(function(k){return k.toLowerCase().indexOf('n°  de registro ea')!==-1||k.toLowerCase().indexOf('n° de registro ea')!==-1||k.toLowerCase().indexOf('registro ea')!==-1;});
+  function fill(id,col){if(!col)return;var s=document.getElementById(id);var cur=s.value;while(s.options.length>1)s.remove(1);var v=[...new Set(database.map(function(r){return String(r[col]||'').trim();}).filter(function(x){return x;}))].sort();v.forEach(function(x){var o=document.createElement('option');o.value=x;o.textContent=x;s.appendChild(o);});if(cur)s.value=cur;}
+  fill('fRegion',rCol);fill('fProfesion',pCol);
+  // Populate entidad select using canonical names from entidades[] array,
+  // only showing entidades that actually have evaluadores in the loaded database
+  var eSel=document.getElementById('fEntidad');
+  var cur=eSel.value;
+  while(eSel.options.length>1)eSel.remove(1);
+  // Collect nregistros present in database
+  var nregsInDB=new Set();
+  if(nregCol){database.forEach(function(r){var v=String(r[nregCol]||'').trim();if(v)nregsInDB.add(v);});}
+  // Build sorted list: entidades with nregistro present in DB first
+  var entList=entidades.slice().sort(function(a,b){
+    var na=a.nregistro?String(a.nregistro):'zzz',nb=b.nregistro?String(b.nregistro):'zzz';
+    return parseInt(na)||999-(parseInt(nb)||999);
+  });
+  entList.forEach(function(e){
+    if(!e.nregistro)return;
+    var nrStr=String(e.nregistro).trim();
+    // Only show if this entidad has rows in DB (by nregistro or name)
+    var hasRows=nregsInDB.has(nrStr)||database.some(function(r){
+      var ev=String(r[keys.find(function(k){return k.toLowerCase().indexOf('entidad')!==-1||k.toLowerCase().indexOf('acreditad')!==-1;})||'']||'').toLowerCase();
+      return ev.indexOf(nrStr+' ')===0;
+    });
+    if(!hasRows)return;
+    var o=document.createElement('option');o.value=e.nombre;o.textContent='['+nrStr+'] '+e.nombre;eSel.appendChild(o);
+  });
+  if(cur)eSel.value=cur;
+}
+function aplicarFiltros(){
+  if(!database.length){alert('No hay datos cargados.');return;}populateFilterOptions();
+  var fR=document.getElementById('fRegion').value.toLowerCase(),fP=document.getElementById('fProfesion').value.toLowerCase(),fRo=document.getElementById('fRol').value.toLowerCase(),fRe=document.getElementById('fResultado').value.toLowerCase(),fEx=document.getElementById('fExclusivo').value.toLowerCase(),fEn=document.getElementById('fEntidad').value.toLowerCase(),fEp=parseInt(document.getElementById('fExpMin').value)||0,fN=document.getElementById('fNombre').value.toLowerCase().trim(),fAp=document.getElementById('fApellido').value.toLowerCase().trim();
+  filteredData=database.filter(function(row){
+    if(fR&&getValLow(row,['región','region'])!==fR)return false;
+    if(fP&&getValLow(row,['profesión','profesion'])!==fP)return false;
+    if(fRo&&getValLow(row,['rol','tipo']).indexOf(fRo)===-1)return false;
+    if(fRe&&getValLow(row,['resultado','examen']).indexOf(fRe)===-1)return false;
+    // Exclusivo: handle "SI/NO", "Exclusivo/Compartido", "S/N" variants
+    if(fEx){
+      var exVal=getValLow(row,['exclusivo','compartido','exclusivo o compartido']);
+      var isExclusivo=(exVal==='si'||exVal==='sí'||exVal==='s'||exVal==='exclusivo'||exVal==='1'||exVal==='true');
+      var isCompartido=(exVal==='no'||exVal==='n'||exVal==='compartido'||exVal==='0'||exVal==='false');
+      if(fEx==='exclusivo'&&!isExclusivo)return false;
+      if(fEx==='compartido'&&!isCompartido)return false;
+    }
+    // Entidad: match by nregistro prefix OR by name substring
+    if(fEn){
+      var rowEntVal=getValLow(row,['entidad','entidades','acreditad']);
+      var entMatch=false;
+      var matchedEnt=entidades.find(function(e){return e.nombre.toLowerCase()===fEn;});
+      if(matchedEnt&&matchedEnt.nregistro){
+        var nrStr=String(matchedEnt.nregistro).trim();
+        if(rowEntVal.indexOf(nrStr+' ')===0)entMatch=true;
+      }
+      if(!entMatch&&rowEntVal.indexOf(fEn)!==-1)entMatch=true;
+      if(!entMatch)return false;
+    }
+    if(fEp>0){var e=parseInt(getValLow(row,['experiencia','clínica','clinica','años']))||0;if(e<fEp)return false;}
+    if(fN&&getValLow(row,['nombre','nombre completo','nombres']).indexOf(fN)===-1)return false;
+    if(fAp&&getValLow(row,['apellido','apellidos','apellido paterno','apellido materno']).indexOf(fAp)===-1)return false;
+    return true;
+  });
+  document.getElementById('filtroResults').style.display='none';document.getElementById('filtroEmpty').style.display='none';document.getElementById('filtroCount').textContent=filteredData.length+' resultado'+(filteredData.length!==1?'s':'');
+  logAction('filter','Filtros aplicados — '+filteredData.length+' resultados');
+  if(!filteredData.length){document.getElementById('filtroEmpty').style.display='block';return;}
+  document.getElementById('filtroResultLabel').textContent=filteredData.length+' evaluador'+(filteredData.length!==1?'es':'')+' encontrado'+(filteredData.length!==1?'s':'');
+  renderFiltroTable();document.getElementById('filtroResults').style.display='block';
+}
+function limpiarFiltros(){['fRegion','fProfesion','fRol','fResultado','fExclusivo','fEntidad'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('fExpMin').value='';document.getElementById('fNombre').value='';document.getElementById('fApellido').value='';document.getElementById('filtroResults').style.display='none';document.getElementById('filtroEmpty').style.display='none';document.getElementById('filtroCount').textContent='';}
+function renderFiltroTable(){
+  var head=document.getElementById('filtroHead'),body=document.getElementById('filtroBody');
+  head.innerHTML='';body.innerHTML='';
+  var tr=document.createElement('tr');
+  FCOLS.forEach(function(c){var th=document.createElement('th');th.textContent=c.label;tr.appendChild(th);});
+  head.appendChild(tr);
+  filteredData.forEach(function(row){
+    var tr=document.createElement('tr');
+    FCOLS.forEach(function(c){
+      var td=document.createElement('td');td.className='tcell';
+      var val=getVal(row,c.kws)||'';
+      if(c.label==='Condición Autorizada'){
+        // Render each condition as a pill badge
+        var parts=val.split(/[,;\/|]+/).map(function(s){return s.trim();}).filter(Boolean);
+        if(!parts.length)parts=['—'];
+        td.innerHTML=parts.map(function(p){
+          var pl=p.toLowerCase();
+          var bg='#e8eef5',col='#1a3260';
+          if(pl.indexOf('dt suplente')!==-1||pl.indexOf('suplente')!==-1){bg='#e6f4ec';col='#006630';}
+          else if(pl.indexOf('dt')!==-1||pl.indexOf('director')!==-1){bg='#e8eef5';col='#0d3460';}
+          else if(pl.indexOf('evaluador')!==-1){bg='#fef9e6';col='#7a5800';}
+          return '<span style="display:inline-block;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:600;background:'+bg+';color:'+col+';margin:1px 2px;white-space:nowrap">'+p+'</span>';
+        }).join('');
+      } else if(c.label==='Estado'){
+        var vl=val.toLowerCase();
+        var isActive=(vl.indexOf('activo')!==-1||vl.indexOf('vigente')!==-1||vl==='si'||vl==='sí'||vl==='1');
+        var isInactive=(vl.indexOf('inactivo')!==-1||vl.indexOf('vencido')!==-1||vl==='no'||vl==='0');
+        if(isActive){td.innerHTML='<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;background:#e6f4ec;color:#006630"><span style="width:6px;height:6px;border-radius:50%;background:#00833e;display:inline-block"></span>Activo</span>';}
+        else if(isInactive){td.innerHTML='<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:600;background:#f5f5f5;color:#6c7a89"><span style="width:6px;height:6px;border-radius:50%;background:#aaa;display:inline-block"></span>Inactivo</span>';}
+        else{td.textContent=val||'—';}
+      } else if(c.label==='Exclusivo'){
+        var vl2=val.toLowerCase();
+        if(vl2==='si'||vl2==='sí'||vl2.indexOf('exclusivo')!==-1){
+          td.innerHTML='<span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;background:#e8eef5;color:#0d3460">Sí</span>';
+        } else if(vl2==='no'||vl2.indexOf('compartido')!==-1){
+          td.innerHTML='<span style="padding:2px 8px;border-radius:20px;font-size:11px;font-weight:600;background:#f5f5f5;color:#6c7a89">No</span>';
+        } else {td.textContent=val||'—';}
+      } else {
+        td.textContent=val||'—';
+      }
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  });
+}
+
+// ── VIGENCIA ──
+function renderVigenciaTab(){
+  if(!database.length){document.getElementById('vigNoData').style.display='block';document.getElementById('vigTableWrap').style.display='none';['vigCountExpired','vigCountExpiring','vigCountValid'].forEach(function(id){document.getElementById(id).textContent='—';});return;}
+  document.getElementById('vigNoData').style.display='none';document.getElementById('vigTableWrap').style.display='block';
+  var counts={expired:0,expiring:0,valid:0};
+  database.forEach(function(row){var info=getVigenciaStatus(getVal(row,['fecha']));if(info)counts[info.status]++;});
+  document.getElementById('vigCountExpired').textContent=counts.expired;document.getElementById('vigCountExpiring').textContent=counts.expiring;document.getElementById('vigCountValid').textContent=counts.valid;
+  var nregColV=Object.keys(database[0]).find(function(k){return k.toLowerCase().indexOf('n°  de registro ea')!==-1||k.toLowerCase().indexOf('n° de registro ea')!==-1||k.toLowerCase().indexOf('registro ea')!==-1;});
+  var vigEntSel=document.getElementById('vigEntidad');var curEnt=vigEntSel.value;
+  while(vigEntSel.options.length>1)vigEntSel.remove(1);
+  var nregsInDBV=new Set();
+  if(nregColV){database.forEach(function(r){var v=String(r[nregColV]||'').trim();if(v)nregsInDBV.add(v);});}
+  var eColV=Object.keys(database[0]).find(function(k){return k.toLowerCase().indexOf('entidad')!==-1||k.toLowerCase().indexOf('acreditad')!==-1;});
+  entidades.slice().sort(function(a,b){return (parseInt(a.nregistro)||999)-(parseInt(b.nregistro)||999);}).forEach(function(e){
+    if(!e.nregistro)return;
+    var nrStr=String(e.nregistro).trim();
+    var hasRows=nregsInDBV.has(nrStr)||(eColV&&database.some(function(r){return String(r[eColV]||'').toLowerCase().indexOf(nrStr+' ')===0;}));
+    if(!hasRows)return;
+    var o=document.createElement('option');o.value=e.nombre;o.textContent='['+nrStr+'] '+e.nombre;vigEntSel.appendChild(o);
+  });
+  if(curEnt)vigEntSel.value=curEnt;
+  renderVigenciaTable();
+}
+function renderVigenciaTable(){
+  var head=document.getElementById('vigHead'),body=document.getElementById('vigBody');head.innerHTML='';body.innerHTML='';
+  var filterVal=document.getElementById('vigFilter').value,entidadVal=(document.getElementById('vigEntidad').value||'').toLowerCase().trim();
+  var cols=[{label:'Nombre',kws:['nombre']},{label:'RUT',kws:['rut']},{label:'Profesión',kws:['profesión','profesion']},{label:'Región',kws:['región','region']},{label:'Rol',kws:['rol','tipo']},{label:'Fecha Res.',kws:['fecha']},{label:'Vence el',kws:[]},{label:'Estado',kws:[]},{label:'Días',kws:[]}];
+  var tr=document.createElement('tr');cols.forEach(function(c){var th=document.createElement('th');th.textContent=c.label;tr.appendChild(th);});head.appendChild(tr);
+  var order={expired:0,expiring:1,valid:2};
+  var rows=database.filter(function(row){var fechaVal=getVal(row,['fecha']);var info=getVigenciaStatus(fechaVal);if(filterVal!=='all'){if(!info)return false;if(info.status!==filterVal)return false;}if(entidadVal){
+      var rowEV=getValLow(row,['entidad','acreditad']);
+      var evMatch=false;
+      var matchEV=entidades.find(function(e){return e.nombre.toLowerCase()===entidadVal;});
+      if(matchEV&&matchEV.nregistro){var nrV=String(matchEV.nregistro).trim();if(rowEV.indexOf(nrV+' ')===0)evMatch=true;}
+      if(!evMatch&&rowEV.indexOf(entidadVal)!==-1)evMatch=true;
+      if(!evMatch)return false;
+    }return true;});
+  rows.sort(function(a,b){var ia=getVigenciaStatus(getVal(a,['fecha'])),ib=getVigenciaStatus(getVal(b,['fecha']));var oa=ia?order[ia.status]:3,ob=ib?order[ib.status]:3;if(oa!==ob)return oa-ob;return(ia?ia.diffDays:9999)-(ib?ib.diffDays:9999);});
+  if(!rows.length){body.innerHTML='<tr><td colspan="9" style="padding:24px;text-align:center;color:var(--muted);font-size:12px;">Sin registros para el filtro seleccionado.</td></tr>';return;}
+  rows.forEach(function(row){var fechaVal=getVal(row,['fecha']);var info=getVigenciaStatus(fechaVal);var tr=document.createElement('tr');
+    cols.forEach(function(c,ci){var td=document.createElement('td');td.className='tcell';
+      if(ci===6){td.textContent=info?formatDateCL(info.expiry):'—';}
+      else if(ci===7){if(!info){td.textContent='Sin fecha';td.style.color='var(--muted)';}else if(info.status==='expired')td.innerHTML='<span class="vig-exp">⛔ Vencida</span>';else if(info.status==='expiring')td.innerHTML='<span class="vig-warn">⚠️ Por vencer</span>';else td.innerHTML='<span class="vig-ok">✅ Vigente</span>';}
+      else if(ci===8){if(!info){td.textContent='—';}else{var d=info.diffDays;td.textContent=d<0?'Hace '+Math.abs(d)+' días':d+' días';if(info.status==='expired')td.style.color='var(--error)';else if(info.status==='expiring')td.style.color='#9a6400';else td.style.color='var(--success)';td.style.fontWeight='500';}}
+      else{td.textContent=getVal(row,c.kws)||'—';}
+      if(info&&info.status==='expired')tr.style.background='#fff8f8';else if(info&&info.status==='expiring')tr.style.background='#fffdf0';
+      tr.appendChild(td);});body.appendChild(tr);});
+}
+
+// ══════════════════════════════════════
+//  ENTIDADES ACREDITADORAS
+// ══════════════════════════════════════
+function getVigenciaEntidad(fechaVal){
+  var fecha=parseDate(fechaVal);if(!fecha)return null;
+  var expiry=new Date(fecha);expiry.setFullYear(expiry.getFullYear()+5);
+  var diffDays=Math.ceil((expiry-new Date())/(1000*60*60*24));
+  return{fecha:fecha,expiry:expiry,diffDays:diffDays,status:diffDays<0?'expired':diffDays<=180?'expiring':'valid'};
+}
+function renderEntidadesTab(){
+  var isAdminFlag=isAdmin();
+  var entForm=document.getElementById('entAdminForm');if(entForm)entForm.style.display=isAdminFlag?'block':'none';
+  var counts={expired:0,expiring:0,valid:0};
+  entidades.forEach(function(e){var info=getVigenciaEntidad(e.fecha);if(info)counts[info.status]++;});
+  document.getElementById('entCountExpired').textContent=counts.expired;document.getElementById('entCountExpiring').textContent=counts.expiring;document.getElementById('entCountValid').textContent=counts.valid;
+  renderEntidadesTable();
+}
+function renderEntidadesTable(){
+  var head=document.getElementById('entHead'),body=document.getElementById('entBody');head.innerHTML='';body.innerHTML='';
+  var filterVal=document.getElementById('entFilter').value;
+  var rows=entidades.filter(function(e){if(filterVal==='all')return true;var info=getVigenciaEntidad(e.fecha);if(!info)return false;return info.status===filterVal;});
+  var order={expired:0,expiring:1,valid:2};
+  rows.sort(function(a,b){var ia=getVigenciaEntidad(a.fecha),ib=getVigenciaEntidad(b.fecha);var oa=ia?order[ia.status]:3,ob=ib?order[ib.status]:3;if(oa!==ob)return oa-ob;return(ia?ia.diffDays:9999)-(ib?ib.diffDays:9999);});
+  if(!entidades.length){document.getElementById('entNoData').style.display='block';document.getElementById('entTableWrap').style.display='none';
+    // Close ficha without triggering another renderEntidadesTable
+    currentEntidadIdx=null;document.getElementById('entFichaPanel').classList.remove('visible');
+    return;}
+  document.getElementById('entNoData').style.display='none';document.getElementById('entTableWrap').style.display='block';
+  var isAdminFlag=isAdmin();
+  var tr=document.createElement('tr');
+  ['N°','Entidad Acreditadora','Fecha Reautorización','Vence el','Estado','Días restantes','Notas','Ver ficha'+(isAdminFlag?'   Acciones':'')].forEach(function(h){var th=document.createElement('th');th.textContent=h;tr.appendChild(th);});
+  head.appendChild(tr);
+  if(!rows.length){body.innerHTML='<tr><td colspan="8" style="padding:20px;text-align:center;color:var(--muted);font-size:12px;">Sin entidades para el filtro seleccionado.</td></tr>';return;}
+  rows.forEach(function(ent,i){
+    var realIdx=entidades.indexOf(ent);
+    var info=getVigenciaEntidad(ent.fecha);
+    var tr=document.createElement('tr');
+    tr.className='ent-row-clickable';
+    if(currentEntidadIdx===realIdx)tr.className+=' ent-row-selected';
+    tr.onclick=function(){abrirFichaEntidad(realIdx);};
+    if(info){if(info.status==='expired')tr.style.background='#fff8f8';else if(info.status==='expiring')tr.style.background='#fffdf0';}
+    var estadoHtml='<span style="color:var(--muted);font-size:11px">Sin fecha</span>';var vence='—';var dias='—';var diasStyle='';
+    if(info){vence=formatDateCL(info.expiry);dias=info.diffDays<0?'Hace '+Math.abs(info.diffDays)+' días':info.diffDays+' días';if(info.status==='expired'){estadoHtml='<span class="vig-exp">⛔ Vencida</span>';diasStyle='color:var(--error);font-weight:500;';}else if(info.status==='expiring'){estadoHtml='<span class="vig-warn">⚠️ Por vencer</span>';diasStyle='color:#9a6400;font-weight:500;';}else{estadoHtml='<span class="vig-ok">✅ Vigente</span>';diasStyle='color:var(--success);font-weight:500;';}}
+    var accionesHtml='<div style="display:flex;gap:4px;align-items:center">'
+      +'<button class="btn btn-gold btn-xs" onclick="event.stopPropagation();abrirFichaEntidad('+realIdx+')">📋 Ver ficha</button>'
+      +(isAdminFlag?'<button class="rbtn" style="background:#e8eef8;color:#1a5276" onclick="event.stopPropagation();editarEntidad('+realIdx+')" title="Editar">✏️</button><button class="rbtn rbtn-del" onclick="event.stopPropagation();eliminarEntidad('+realIdx+')" title="Eliminar">🗑</button>':'')
+      +'</div>';
+    tr.innerHTML='<td class="tcell">'+(i+1)+'</td><td class="tcell" style="font-weight:600">'+ent.nombre+'</td><td class="tcell">'+ent.fecha+'</td><td class="tcell">'+vence+'</td><td class="tcell">'+estadoHtml+'</td><td class="tcell" style="'+diasStyle+'">'+dias+'</td><td class="tcell" style="color:var(--muted);font-size:11px">'+(ent.notas||'—')+'</td><td class="tcell">'+accionesHtml+'</td>';
+    // Re-attach onclick after innerHTML (which overwrites it)
+    tr.onclick=(function(ri){return function(){abrirFichaEntidad(ri);};})(realIdx);
+    body.appendChild(tr);
+  });
+}
+function guardarEntidad(){
+  var nombre=document.getElementById('entNombre').value.trim(),fecha=document.getElementById('entFecha').value,notas=document.getElementById('entNotas').value.trim(),idx=parseInt(document.getElementById('entEditIdx').value);
+  var nregistro=document.getElementById('entNRegistro').value.trim();
+  var rut=document.getElementById('entRut').value.trim();
+  var nombreFantasia=document.getElementById('entNombreFantasia').value.trim();
+  var direccion=document.getElementById('entDireccion').value.trim();
+  var telefono=document.getElementById('entTelefono').value.trim();
+  var email=document.getElementById('entEmail').value.trim();
+  var web=document.getElementById('entWeb').value.trim();
+  var repLegal=document.getElementById('entRepLegal').value.trim();
+  var emailRepLegal=document.getElementById('entEmailRepLegal').value.trim();
+  var urlRegistro=document.getElementById('entUrlRegistro').value.trim();
+  var errEl=document.getElementById('entFormErr');
+  if(!nombre){errEl.textContent='Ingrese el nombre.';errEl.style.display='block';return;}
+  if(!fecha){errEl.textContent='Seleccione la fecha.';errEl.style.display='block';return;}
+  errEl.style.display='none';
+  var parts=fecha.split('-');var fechaDisplay=parts[2]+'/'+parts[1]+'/'+parts[0];
+  var newEntData={nombre:nombre,fecha:fechaDisplay,notas:notas};
+  if(nregistro)newEntData.nregistro=nregistro;if(rut)newEntData.rut=rut;if(nombreFantasia)newEntData.nombreFantasia=nombreFantasia;
+  if(direccion)newEntData.direccion=direccion;if(telefono)newEntData.telefono=telefono;if(email)newEntData.email=email;
+  if(web)newEntData.web=web;if(repLegal)newEntData.repLegal=repLegal;if(emailRepLegal)newEntData.emailRepLegal=emailRepLegal;
+  if(urlRegistro)newEntData.urlRegistro=urlRegistro;
+  if(idx>=0){var ex=entidades[idx];entidades[idx]=Object.assign({},ex,newEntData);logAction('filter','Editó entidad: '+nombre);showBanner('Entidad actualizada ✓');}
+  else{if(entidades.find(function(e){return e.nombre.toLowerCase()===nombre.toLowerCase();})){errEl.textContent='Ya existe esa entidad.';errEl.style.display='block';return;}entidades.push(newEntData);if(!procesos[nombre])procesos[nombre]=[];logAction('filter','Agregó entidad: '+nombre);showBanner('Entidad agregada ✓');}
+  cancelarEditEntidad();renderEntidadesTab();
+}
+function editarEntidad(idx){
+  var e=entidades[idx];
+  document.getElementById('entNombre').value=e.nombre||'';
+  document.getElementById('entNRegistro').value=e.nregistro||'';
+  document.getElementById('entRut').value=e.rut||'';
+  document.getElementById('entNombreFantasia').value=e.nombreFantasia||'';
+  document.getElementById('entDireccion').value=e.direccion||'';
+  document.getElementById('entTelefono').value=e.telefono||'';
+  document.getElementById('entEmail').value=e.email||'';
+  document.getElementById('entWeb').value=e.web||'';
+  document.getElementById('entRepLegal').value=e.repLegal||'';
+  document.getElementById('entEmailRepLegal').value=e.emailRepLegal||'';
+  document.getElementById('entUrlRegistro').value=e.urlRegistro||'';
+  var parts=e.fecha.split('/');if(parts.length===3)document.getElementById('entFecha').value=parts[2]+'-'+parts[1]+'-'+parts[0];else document.getElementById('entFecha').value='';
+  document.getElementById('entNotas').value=e.notas||'';
+  document.getElementById('entEditIdx').value=idx;document.getElementById('btnCancelarEnt').style.display='inline-flex';
+  document.getElementById('entNombre').focus();document.getElementById('entNombre').scrollIntoView({behavior:'smooth',block:'center'});
+}
+function cancelarEditEntidad(){['entNombre','entNRegistro','entRut','entNombreFantasia','entDireccion','entTelefono','entEmail','entWeb','entRepLegal','entEmailRepLegal','entUrlRegistro','entFecha','entNotas'].forEach(function(id){document.getElementById(id).value='';});document.getElementById('entEditIdx').value='-1';document.getElementById('btnCancelarEnt').style.display='none';document.getElementById('entFormErr').style.display='none';}
+function eliminarEntidad(idx){
+  if(!confirm('¿Eliminar entidad "'+entidades[idx].nombre+'"?'))return;
+  var nombre=entidades[idx].nombre;entidades.splice(idx,1);delete procesos[nombre];
+  if(currentEntidadIdx===idx)cerrarFichaEntidad();else if(currentEntidadIdx>idx)currentEntidadIdx--;
+  logAction('filter','Eliminó entidad: '+nombre);renderEntidadesTab();showBanner('Entidad eliminada');
+}
+
+// ══════════════════════════════════════
+//  FICHA ENTIDAD
+// ══════════════════════════════════════
+function abrirFichaEntidad(idx){
+  currentEntidadIdx=idx;
+  var ent=entidades[idx];
+  var panel=document.getElementById('entFichaPanel');
+
+  // Header
+  document.getElementById('efInitials').textContent=ent.nombre.charAt(0).toUpperCase();
+  document.getElementById('efNombre').textContent=ent.nombre;
+  var info=getVigenciaEntidad(ent.fecha);
+  var vigLabel=!info?'Sin fecha de vigencia':info.status==='expired'?'⛔ Vigencia vencida':info.status==='expiring'?'⚠️ Vigencia por vencer':'✅ Vigencia activa';
+  document.getElementById('efSubtitle').textContent='Entidad Acreditadora · '+vigLabel;
+  var linkEl=document.getElementById('efLinkRegistro');
+  if(ent.urlRegistro){linkEl.href=ent.urlRegistro;linkEl.style.display='inline-block';}else{linkEl.style.display='none';}
+
+  // Stats
+  var evals=getEvalsByEntidad(ent.nombre);
+  var aprobados=evals.filter(function(r){return getVal(r,['resultado','examen']).toLowerCase().indexOf('aprobado')!==-1;}).length;
+  var reprobados=evals.filter(function(r){return getVal(r,['resultado','examen']).toLowerCase().indexOf('reprobado')!==-1;}).length;
+  var procs=(procesos[ent.nombre]||[]).length;
+  document.getElementById('efTotalEval').textContent=evals.length;
+  document.getElementById('efAprobados').textContent=aprobados;
+  document.getElementById('efReprobados').textContent=reprobados;
+  document.getElementById('efProcesos').textContent=procs;
+
+  // Datos generales tab — campos del registro público
+  document.getElementById('efDatNombre').textContent=ent.nombre||'—';
+  document.getElementById('efDatNReg').textContent=ent.nregistro||'—';
+  document.getElementById('efDatRut').textContent=ent.rut||'—';
+  document.getElementById('efDatFantasia').textContent=ent.nombreFantasia||'—';
+  document.getElementById('efDatDireccion').textContent=ent.direccion||'—';
+  document.getElementById('efDatTelefono').textContent=ent.telefono||'—';
+  var emailEl=document.getElementById('efDatEmail');
+  if(ent.email&&ent.email!=='—'){emailEl.innerHTML='<a href="mailto:'+ent.email+'" style="color:var(--navy);text-decoration:underline">'+ent.email+'</a>';}else{emailEl.textContent='—';}
+  var webEl=document.getElementById('efDatWeb');
+  if(ent.web&&ent.web!=='—'){var webUrl=ent.web.startsWith('http')?ent.web:'https://'+ent.web;webEl.innerHTML='<a href="'+webUrl+'" target="_blank" style="color:var(--navy);text-decoration:underline">'+ent.web+'</a>';}else{webEl.textContent='—';}
+  document.getElementById('efDatRepLegal').textContent=ent.repLegal||'—';
+  var emailRepEl=document.getElementById('efDatEmailRep');
+  if(ent.emailRepLegal&&ent.emailRepLegal!=='—'){emailRepEl.innerHTML='<a href="mailto:'+ent.emailRepLegal.split('/')[0].trim()+'" style="color:var(--navy);text-decoration:underline">'+ent.emailRepLegal+'</a>';}else{emailRepEl.textContent='—';}
+  document.getElementById('efDatFecha').textContent=ent.fecha||'—';
+  document.getElementById('efDatNotas').textContent=ent.notas||'—';
+  if(info){
+    document.getElementById('efDatVence').textContent=formatDateCL(info.expiry);
+    document.getElementById('efDatDias').textContent=info.diffDays<0?'Hace '+Math.abs(info.diffDays)+' días':info.diffDays+' días restantes';
+    var estadoEl=document.getElementById('efDatEstado');
+    if(info.status==='expired')estadoEl.innerHTML='<span class="vig-exp">⛔ Vencida</span>';
+    else if(info.status==='expiring')estadoEl.innerHTML='<span class="vig-warn">⚠️ Por vencer</span>';
+    else estadoEl.innerHTML='<span class="vig-ok">✅ Vigente</span>';
+  } else {
+    document.getElementById('efDatVence').textContent='—';document.getElementById('efDatDias').textContent='—';document.getElementById('efDatEstado').textContent='Sin fecha';
+  }
+
+  // Reset to first tab
+  switchEntTab('datos', document.querySelector('.ent-tab'));
+  renderEfEvaluadores();
+  renderEfProcesos();
+  renderEfDocumentos();
+
+  panel.classList.add('visible');
+  setTimeout(function(){panel.scrollIntoView({behavior:'smooth',block:'nearest'});},80);
+
+  // Re-render table to highlight selected row
+  renderEntidadesTable();
+}
+
+function cerrarFichaEntidad(){
+  currentEntidadIdx=null;
+  document.getElementById('entFichaPanel').classList.remove('visible');
+  renderEntidadesTable();
+}
+
+function switchEntTab(name, btn){
+  document.querySelectorAll('.ent-tab-content').forEach(function(c){c.classList.remove('active');});
+  document.querySelectorAll('.ent-tab').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('eftab-'+name).classList.add('active');
+  // Find correct button
+  document.querySelectorAll('.ent-tab').forEach(function(b){if(b.getAttribute('onclick')&&b.getAttribute('onclick').indexOf("'"+name+"'")!==-1)b.classList.add('active');});
+}
+
+function getEvalsByEntidad(nombre){
+  if(!database.length)return[];
+  // Find nregistro for this entidad
+  var ent=entidades.find(function(e){return e.nombre===nombre;});
+  var nreg=ent&&ent.nregistro?String(ent.nregistro).trim():'';
+  var nomLow=nombre.toLowerCase();
+
+  return database.filter(function(row){
+    // 1. Match by N° de Registro EA (most reliable — col "N°  de Registro EA")
+    if(nreg){
+      var rowNReg=getVal(row,['n°  de registro ea','n° de registro ea','n° registro ea','registro ea']).trim();
+      if(rowNReg===nreg)return true;
+    }
+    // 2. Fallback: match by entidad name substring
+    var entVal=getVal(row,['entidad','acreditad']).toLowerCase();
+    if(!entVal)return false;
+    // Try direct substring of the stored name
+    if(entVal.indexOf(nomLow)!==-1)return true;
+    // Try with nregistro prefix: Excel stores "16 Sandoval y Poblete..."
+    if(nreg&&entVal.indexOf(nreg+' ')===0){
+      // Strip the number prefix and check key words
+      var stripped=entVal.replace(/^\d+\s+/,'');
+      // Build key tokens from our name (skip generic words)
+      var tokens=nomLow.replace(/[()]/g,' ').split(/\s+/).filter(function(t){return t.length>3&&['limitada','limitad','sociedad','profesionales','asesorias','asesorías','calidad','salud','gestión','gestion'].indexOf(t)===-1;});
+      if(tokens.length>0&&tokens.some(function(t){return stripped.indexOf(t)!==-1;}))return true;
+      // Always match if the nreg prefix matched
+      return true;
+    }
+    return false;
+  });
+}
+
+function renderEfEvaluadores(){
+  if(currentEntidadIdx===null)return;
+  var ent=entidades[currentEntidadIdx];
+  var q=(document.getElementById('efEvalSearch').value||'').toLowerCase().trim();
+  var evals=getEvalsByEntidad(ent.nombre);
+  var filtered=!q?evals:evals.filter(function(r){return getVal(r,['nombre']).toLowerCase().indexOf(q)!==-1||getVal(r,['rut']).toLowerCase().indexOf(q)!==-1;});
+  document.getElementById('efEvalCount').textContent=filtered.length+' evaluador'+(filtered.length!==1?'es':'');
+  var tbody=document.getElementById('efEvalBody');
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="6" class="proc-empty">'+(database.length===0?'Carga una base de datos para ver evaluadores.':'Sin evaluadores encontrados para esta entidad.')+'</td></tr>';return;}
+  tbody.innerHTML=filtered.map(function(r){
+    var nom=getVal(r,['nombre']),rut=getVal(r,['rut']),prof=getVal(r,['profesión','profesion']),rol=getVal(r,['rol','tipo']),res=getVal(r,['resultado','examen']);
+    var resCls=res.toLowerCase().indexOf('aprobado')!==-1?'color:#00833e;font-weight:500':res.toLowerCase().indexOf('reprobado')!==-1?'color:#c0392b;font-weight:500':'';
+    var fechaVal=getVal(r,['fecha']);var info=getVigenciaStatus(fechaVal);
+    var vigHtml=!info?'<span style="color:var(--muted);font-size:10px">—</span>':info.status==='expired'?'<span class="vig-exp" style="font-size:10px">⛔</span>':info.status==='expiring'?'<span class="vig-warn" style="font-size:10px">⚠️</span>':'<span class="vig-ok" style="font-size:10px">✅</span>';
+    return '<tr><td>'+nom+'</td><td style="font-weight:500">'+fmtRut(rut)+'</td><td>'+prof+'</td><td>'+rol+'</td><td style="'+resCls+'">'+res+'</td><td>'+vigHtml+'</td></tr>';
+  }).join('');
+}
+
+// ── PROCESOS DE ACREDITACIÓN ──
+function renderEfProcesos(){
+  if(currentEntidadIdx===null)return;
+  var ent=entidades[currentEntidadIdx];
+  var isAdminFlag=isAdmin();
+  document.getElementById('btnAddProc').style.display=canEdit()?'inline-flex':'none';
+  document.getElementById('btnImportProc').style.display=isAdminFlag?'inline-flex':'none';
+  document.getElementById('procActHdr').textContent=isAdminFlag?'Acciones':'';
+  var procs=procesos[ent.nombre]||[];
+  document.getElementById('efProcesos').textContent=procs.length;
+  document.getElementById('efProcCount').textContent=procs.length+' proceso'+(procs.length!==1?'s':'');
+  var tbody=document.getElementById('efProcBody');
+  if(!procs.length){tbody.innerHTML='<tr><td colspan="8" class="proc-empty">Sin procesos de acreditación registrados para esta entidad.</td></tr>';return;}
+  tbody.innerHTML=procs.map(function(p,i){
+    var res=p.resultado||'';
+    var resBadge='';
+    if(res==='Acreditado'){
+      resBadge='<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#e6f4ec;color:#006630"><span style="width:6px;height:6px;border-radius:50%;background:#00833e;display:inline-block"></span>Acreditado</span>';
+    } else if(res==='No acreditado'){
+      resBadge='<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#fdf0f0;color:#9b2335"><span style="width:6px;height:6px;border-radius:50%;background:#c0392b;display:inline-block"></span>No acreditado</span>';
+    } else if(res==='Acreditado con observaciones'){
+      resBadge='<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#fff8e6;color:#7a5800"><span style="width:6px;height:6px;border-radius:50%;background:#f0a500;display:inline-block"></span>Acred. con obs.</span>';
+    } else {
+      resBadge='<span style="color:var(--muted);font-size:11px">'+(res||'—')+'</span>';
+    }
+    var evalsHtml='—';
+    if(p.evaluadores&&p.evaluadores.length){
+      evalsHtml=p.evaluadores.map(function(ev){
+        return '<span style="display:inline-block;background:#e8eef5;color:#0d3460;border-radius:20px;padding:1px 8px;font-size:10.5px;font-weight:500;margin:1px 2px;white-space:nowrap">'+ev+'</span>';
+      }).join('');
+    }
+    var obs=p.obs?'<span style="color:var(--muted);font-size:11px">'+p.obs+'</span>':'—';
+    var accs=isAdminFlag?'<div style="display:flex;gap:3px"><button class="rbtn" style="background:#e8eef8;color:#1a5276" onclick="editarProceso('+i+')" title="Editar">✏</button><button class="rbtn rbtn-del" onclick="eliminarProceso('+i+')" title="Eliminar">✕</button></div>':'';
+    return '<tr>'
+      +'<td class="tcell" style="color:var(--muted);font-size:11px">'+(i+1)+'</td>'
+      +'<td class="tcell" style="font-weight:500">'+p.nombre+'</td>'
+      +'<td class="tcell" style="font-family:monospace;font-size:11.5px;color:var(--navy)">'+(p.resolucion||'—')+'</td>'
+      +'<td class="tcell" style="white-space:nowrap">'+p.fecha+'</td>'
+      +'<td class="tcell">'+evalsHtml+'</td>'
+      +'<td class="tcell">'+resBadge+'</td>'
+      +'<td class="tcell">'+obs+'</td>'
+      +'<td class="tcell">'+accs+'</td>'
+      +'</tr>';
+  }).join('');
+}
+function toggleProcForm(){var f=document.getElementById('procForm');f.classList.toggle('visible');if(f.classList.contains('visible')){document.getElementById('procImportForm').classList.remove('visible');document.getElementById('procFormTitle').textContent='Registrar proceso de acreditación';document.getElementById('procNombre').focus();}}
+function toggleImportProc(){var f=document.getElementById('procImportForm');f.classList.toggle('visible');if(f.classList.contains('visible')){document.getElementById('procForm').classList.remove('visible');document.getElementById('procImportPreview').textContent='';document.getElementById('procImportErr').style.display='none';document.getElementById('btnConfirmImport').style.display='none';document.getElementById('procImportFileName').textContent='Seleccionar archivo Excel...';document.getElementById('procImportFile').value='';}}
+function cancelarImportProc(){document.getElementById('procImportForm').classList.remove('visible');document.getElementById('procImportFile').value='';document.getElementById('procImportFileName').textContent='Seleccionar archivo Excel...';document.getElementById('procImportPreview').textContent='';document.getElementById('btnConfirmImport').style.display='none';}
+var _importProcData=null;
+function previsualizarImportProcesos(inp){
+  var file=inp.files[0];if(!file)return;
+  document.getElementById('procImportFileName').textContent=file.name;
+  var reader=new FileReader();var ext=file.name.split('.').pop().toLowerCase();
+  reader.onload=function(e){
+    try{
+      var wb=ext==='csv'?XLSX.read(e.target.result,{type:'string'}):XLSX.read(e.target.result,{type:'array'});
+      var data=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+      if(!data.length){document.getElementById('procImportErr').textContent='El archivo está vacío.';document.getElementById('procImportErr').style.display='inline';return;}
+      _importProcData=data;
+      var total=data.length;var ok=data.filter(function(r){return (r['Prestador']||r['prestador']||r['Nombre']||r['nombre']||'').trim()!=='';}).length;
+      document.getElementById('procImportPreview').innerHTML='<span style="color:var(--success)">✓ '+total+' fila'+(total!==1?'s':'')+' detectadas, '+ok+' con prestador definido.</span>';
+      document.getElementById('btnConfirmImport').style.display='inline-flex';document.getElementById('procImportErr').style.display='none';
+    }catch(err){document.getElementById('procImportErr').textContent='Error al leer el archivo: '+err.message;document.getElementById('procImportErr').style.display='inline';}
+  };
+  ext==='csv'?reader.readAsText(file,'UTF-8'):reader.readAsArrayBuffer(file);
+}
+function confirmarImportProcesos(){
+  if(!_importProcData||currentEntidadIdx===null)return;
+  var ent=entidades[currentEntidadIdx];var modo=document.getElementById('procImportModo').value;
+  var imported=[];
+  _importProcData.forEach(function(r){
+    var nombre=(r['Prestador']||r['prestador']||r['Nombre']||r['nombre']||'').trim();
+    if(!nombre)return;
+    var fechaRaw=(r['Fecha']||r['fecha']||'').toString().trim();
+    var fechaDisplay=fechaRaw;
+    var d=parseDate(fechaRaw);if(d)fechaDisplay=formatDateCL(d);
+    var entidadVal=(r['Entidad Acreditadora']||r['Entidad']||r['entidad']||ent.nombre).toString().trim();
+    imported.push({nombre:nombre,fecha:fechaDisplay,resultado:(r['Resultado']||r['resultado']||'').toString().trim(),resolucion:(r['N° Resolución']||r['N Resolución']||r['Resolucion']||r['resolucion']||'').toString().trim(),entidad:entidadVal,obs:(r['Observaciones']||r['Obs']||r['observaciones']||'').toString().trim(),ingresadoPor:'Importación Excel'});
+  });
+  if(!imported.length){document.getElementById('procImportErr').textContent='No se encontraron filas válidas.';document.getElementById('procImportErr').style.display='inline';return;}
+  if(!procesos[ent.nombre])procesos[ent.nombre]=[];
+  if(modo==='reemplazar'){if(!confirm('¿Reemplazar todos los procesos actuales con '+imported.length+' importados?'))return;procesos[ent.nombre]=imported;}
+  else{procesos[ent.nombre]=procesos[ent.nombre].concat(imported);}
+  logAction('excel','Importó '+imported.length+' procesos para '+ent.nombre);showBanner('✓ '+imported.length+' procesos importados');cancelarImportProc();renderEfProcesos();
+}
+function descargarPlantillaProcesos(){
+  var data=[{'Prestador':'Clínica Los Andes','Fecha':'15/03/2024','Resultado':'Acreditado','N° Resolución':'1234/2024','Entidad Acreditadora':'CONACEM','Observaciones':'Proceso sin observaciones'},{'Prestador':'Hospital Regional','Fecha':'20/06/2024','Resultado':'No acreditado','N° Resolución':'','Entidad Acreditadora':'ISP','Observaciones':'Pendiente revisión'}];
+  var wb=XLSX.utils.book_new();var ws=XLSX.utils.json_to_sheet(data);XLSX.utils.book_append_sheet(wb,ws,'Procesos');XLSX.writeFile(wb,'plantilla_procesos_acreditacion.xlsx');showBanner('Plantilla descargada ✓');
+}
+function guardarProceso(){
+  if(currentEntidadIdx===null)return;
+  var ent=entidades[currentEntidadIdx];
+  var nombre=document.getElementById('procNombre').value.trim();
+  var fecha=document.getElementById('procFecha').value;
+  var res=document.getElementById('procResultado').value;
+  var resol=document.getElementById('procResolucion').value.trim();
+  var obs=document.getElementById('procObs').value.trim();
+  var evalVal=document.getElementById('procEvaluadores').value;
+  var evaluadores=evalVal?evalVal.split('||').filter(function(s){return s.trim()!=='';}):[];
+  var idx=parseInt(document.getElementById('procEditIdx').value);
+  var errEl=document.getElementById('procFormErr');
+  if(!nombre){errEl.textContent='Ingrese el nombre del prestador institucional.';errEl.style.display='inline';return;}
+  if(!resol){errEl.textContent='Ingrese el N° de solicitud de acreditación.';errEl.style.display='inline';return;}
+  errEl.style.display='none';
+  var fechaDisplay='';
+  if(fecha){var parts=fecha.split('-');fechaDisplay=parts[2]+'/'+parts[1]+'/'+parts[0];}
+  if(!procesos[ent.nombre])procesos[ent.nombre]=[];
+  var proc={nombre:nombre,fecha:fechaDisplay,entidad:ent.nombre,resultado:res,resolucion:resol,evaluadores:evaluadores,obs:obs,ingresadoPor:currentUser.name};
+  if(idx>=0){procesos[ent.nombre][idx]=proc;logAction('filter','Editó proceso en '+ent.nombre+': '+nombre);showBanner('Proceso actualizado ✓');}
+  else{procesos[ent.nombre].push(proc);logAction('filter','Registró proceso en '+ent.nombre+': '+nombre);showBanner('Proceso registrado ✓');}
+  cancelarProceso();renderEfProcesos();
+  document.getElementById('efProcesos').textContent=procesos[ent.nombre].length;
+}
+function editarProceso(i){
+  if(currentEntidadIdx===null)return;
+  var ent=entidades[currentEntidadIdx];var p=procesos[ent.nombre][i];
+  document.getElementById('procNombre').value=p.nombre||'';
+  document.getElementById('procResolucion').value=p.resolucion||'';
+  if(p.fecha){var parts=p.fecha.split('/');if(parts.length===3)document.getElementById('procFecha').value=parts[2]+'-'+parts[1]+'-'+parts[0];}
+  document.getElementById('procResultado').value=p.resultado||'';
+  document.getElementById('procObs').value=p.obs||'';
+  // Restore evaluadores tags
+  var evs=p.evaluadores||[];
+  document.getElementById('procEvaluadores').value=evs.join('||');
+  renderEvalTags();
+  document.getElementById('procEditIdx').value=i;
+  document.getElementById('procFormTitle').textContent='Editar proceso de acreditación';
+  document.getElementById('procForm').classList.add('visible');
+  document.getElementById('procNombre').focus();
+}
+function eliminarProceso(i){
+  if(currentEntidadIdx===null)return;var ent=entidades[currentEntidadIdx];
+  if(!confirm('¿Eliminar este proceso?'))return;procesos[ent.nombre].splice(i,1);renderEfProcesos();showBanner('Proceso eliminado');
+}
+function cancelarProceso(){
+  document.getElementById('procNombre').value='';
+  document.getElementById('procFecha').value='';
+  document.getElementById('procResultado').value='';
+  document.getElementById('procResolucion').value='';
+  document.getElementById('procObs').value='';
+  document.getElementById('procEvaluadores').value='';
+  document.getElementById('procEditIdx').value='-1';
+  document.getElementById('procFormErr').style.display='none';
+  document.getElementById('procForm').classList.remove('visible');
+  renderEvalTags();
+}
+// ── Tag input for evaluadores ──
+function renderEvalTags(){
+  var val=document.getElementById('procEvaluadores').value;
+  var evs=val?val.split('||').filter(function(s){return s.trim()!=='';}):[]; 
+  var wrap=document.getElementById('procEvalTags');
+  if(!wrap)return;
+  wrap.innerHTML=evs.map(function(ev,i){
+    return '<span style="display:inline-flex;align-items:center;gap:4px;background:#e8eef5;color:#0d3460;border-radius:20px;padding:2px 10px;font-size:11.5px;font-weight:500">'
+      +ev
+      +'<button type="button" onclick="removeEval('+i+')" style="background:none;border:none;cursor:pointer;color:#6c7a89;font-size:12px;padding:0;line-height:1;margin-left:2px">×</button>'
+      +'</span>';
+  }).join('');
+}
+function removeEval(i){
+  var val=document.getElementById('procEvaluadores').value;
+  var evs=val?val.split('||').filter(function(s){return s.trim()!=='';}):[]; 
+  evs.splice(i,1);
+  document.getElementById('procEvaluadores').value=evs.join('||');
+  renderEvalTags();
+}
+function addEvalFromInput(){
+  var inp=document.getElementById('procEvalInput');
+  if(!inp)return;
+  var name=inp.value.trim();
+  if(!name)return;
+  var val=document.getElementById('procEvaluadores').value;
+  var evs=val?val.split('||').filter(function(s){return s.trim()!=='';}):[]; 
+  if(evs.indexOf(name)===-1)evs.push(name);
+  document.getElementById('procEvaluadores').value=evs.join('||');
+  inp.value='';
+  renderEvalTags();
+}
+
+// ── DOCUMENTOS EN FICHA ENTIDAD ──
+function renderEfDocumentos(){
+  if(currentEntidadIdx===null)return;
+  var ent=entidades[currentEntidadIdx];
+  var grid=document.getElementById('efDocGrid'),emptyEl=document.getElementById('efDocEmpty');
+  var icons={Resolución:'📋',Certificado:'🏅',Contrato:'📝',Informe:'📊',Otro:'📄'};
+  var docs=documentos.filter(function(d){return d.entidad===ent.nombre;});
+  grid.innerHTML='';emptyEl.style.display='none';
+  if(!docs.length){emptyEl.style.display='block';return;}
+  docs.forEach(function(doc){
+    var card=document.createElement('div');card.className='doc-card';
+    var driveLink=convertDriveLink(doc.link);
+    card.innerHTML='<div class="doc-card-top"><div class="doc-icon">'+(icons[doc.tipo]||'📄')+'</div><div style="flex:1;min-width:0"><div class="doc-title">'+doc.nombre+'</div></div></div>'+(doc.desc?'<div class="doc-desc">'+doc.desc+'</div>':'')+'<div class="doc-meta"><span style="background:var(--cream-dark);padding:1px 7px;border-radius:4px;font-size:10px;margin-right:6px">'+doc.tipo+'</span>'+(doc.fecha?doc.fecha:'')+'</div><div class="doc-actions"><a class="doc-open" href="'+driveLink+'" target="_blank">🔗 Abrir en Drive</a></div>';
+    grid.appendChild(card);
+  });
+}
+
+// ── EXPORTAR PROCESOS ──
+function exportarProcesosPDF(){
+  if(currentEntidadIdx===null)return;
+  var ent=entidades[currentEntidadIdx];var procs=procesos[ent.nombre]||[];
+  if(!procs.length){alert('No hay procesos registrados.');return;}
+  var today=new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'long',year:'numeric'});
+  var drows=procs.map(function(p,i){
+    var resStyle=p.resultado==='Acreditado'?'color:#00833e;font-weight:500':p.resultado==='No acreditado'?'color:#c0392b;font-weight:500':'color:#9a6400;font-weight:500';
+    return '<tr'+(i%2===0?'':' class="alt"')+'><td>'+(i+1)+'</td><td style="font-weight:500">'+p.nombre+'</td><td style="color:#4a5568">'+( p.entidad||'—')+'</td><td>'+p.fecha+'</td><td style="'+resStyle+'">'+(p.resultado||'—')+'</td><td>'+(p.resolucion||'—')+'</td><td>'+(p.obs||'—')+'</td></tr>';
+  }).join('');
+  var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><title>Procesos '+ent.nombre+'</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Inter,Arial,sans-serif;background:#fff;color:#1a202c;font-size:9pt;}.hdr{background:#0d3460;color:#fff;padding:16px 22px;}.sub{color:#00833e;font-size:6.5pt;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;}.htitle{font-size:15pt;margin-bottom:3px;font-weight:300;}.meta{font-size:8pt;color:rgba(255,255,255,.55);margin-top:4px;}.body{padding:14px 22px;}table{width:100%;border-collapse:collapse;font-size:8.5pt;}thead th{background:#0d3460;color:#fff;padding:7px 8px;text-align:left;font-size:7.5pt;}tbody tr.alt{background:#f0f4f8;}tbody td{padding:6px 8px;border-bottom:1px solid #eee;}.foot{margin-top:10px;padding:8px 22px;background:#f0f4f8;border-top:1px solid #dce4ed;font-size:7pt;color:#6c7a89;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}@page{margin:1cm;size:A4 landscape;}}</style></head><body><div class="hdr"><img src="https://www.superdesalud.gob.cl/app/themes/supersalud-bloom/assets/src/img/logo-super2020-negro.png" style="height:26px;width:auto;filter:brightness(0) invert(1);opacity:.85;display:block;margin-bottom:6px;" onerror="this.onerror=null;"><div class="sub">SEOS · Procesos de Acreditación</div><div class="htitle">Procesos · '+ent.nombre+'</div><div class="meta">Generado el '+today+' · '+procs.length+' proceso'+(procs.length!==1?'s':'')+'</div></div><div class="body"><table><thead><tr><th>#</th><th>Prestador / Institución</th><th>Entidad Acreditadora</th><th>Fecha</th><th>Resultado</th><th>N° Resolución</th><th>Observaciones</th></tr></thead><tbody>'+drows+'</tbody></table></div><div class="foot">SEOS · '+ent.nombre+' · '+today+'</div>'+'<'+'scr'+'ipt'+'>window.onload=function(){window.print();};<\/scr'+'ipt>'+'</body></html>';
+  var blob=new Blob([html],{type:'text/html;charset=utf-8'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='procesos_'+ent.nombre.replace(/\s/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.html';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},1000);
+  logAction('pdf','Exportó procesos PDF: '+ent.nombre);
+}
+function exportarProcesosExcel(){
+  if(currentEntidadIdx===null)return;var ent=entidades[currentEntidadIdx];var procs=procesos[ent.nombre]||[];
+  if(!procs.length){alert('No hay procesos registrados.');return;}
+  var data=procs.map(function(p){return{'Entidad (ficha)':ent.nombre,'Prestador / Institución':p.nombre,'Entidad Acreditadora':p.entidad||'','Fecha del proceso':p.fecha,'Resultado':p.resultado||'','N° Resolución':p.resolucion||'','Observaciones':p.obs||'','Ingresado por':p.ingresadoPor||''};});
+  var wb=XLSX.utils.book_new();var ws=XLSX.utils.json_to_sheet(data);XLSX.utils.book_append_sheet(wb,ws,'Procesos');XLSX.writeFile(wb,'procesos_'+ent.nombre.replace(/\s/g,'_')+'_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  logAction('excel','Exportó procesos Excel: '+ent.nombre);showBanner('Excel procesos exportado ✓');
+}
+
+// ══════════════════════════════════════
+//  DOCUMENTOS
+// ══════════════════════════════════════
+function renderDocumentosTab(){
+  var isAdminFlag=isAdmin();
+  document.getElementById('docUploadForm').style.display=isAdminFlag?'block':'none';
+  populateDocEntidadSelects();renderDocumentos();
+}
+function populateDocEntidadSelects(){
+  var opts='<option value="">Seleccionar entidad...</option>'+entidades.map(function(e){return'<option value="'+e.nombre+'">'+e.nombre+'</option>';}).join('');
+  document.getElementById('docEntidad').innerHTML=opts;
+  var fOpts='<option value="">Todas las entidades</option>'+entidades.map(function(e){return'<option value="'+e.nombre+'">'+e.nombre+'</option>';}).join('');
+  document.getElementById('docFiltroEntidad').innerHTML=fOpts;
+}
+function renderDocumentos(){
+  var grid=document.getElementById('docGrid'),empty=document.getElementById('docsEmpty'),none=document.getElementById('docsNone'),count=document.getElementById('docCount');
+  var isAdminFlag=isAdmin();
+  var fEnt=document.getElementById('docFiltroEntidad').value,fTipo=document.getElementById('docFiltroTipo').value,fText=document.getElementById('docFiltroTexto').value.toLowerCase().trim();
+  grid.innerHTML='';empty.classList.remove('visible');none.classList.remove('visible');
+  if(!documentos.length){none.classList.add('visible');count.textContent='';return;}
+  var filtered=documentos.filter(function(d){if(fEnt&&d.entidad!==fEnt)return false;if(fTipo&&d.tipo!==fTipo)return false;if(fText&&d.nombre.toLowerCase().indexOf(fText)===-1&&(d.desc||'').toLowerCase().indexOf(fText)===-1)return false;return true;});
+  count.textContent=filtered.length+' documento'+(filtered.length!==1?'s':'');
+  if(!filtered.length){empty.classList.add('visible');return;}
+  var icons={Resolución:'📋',Certificado:'🏅',Contrato:'📝',Informe:'📊',Otro:'📄'};
+  filtered.forEach(function(doc){
+    var realIdx=documentos.indexOf(doc);var icon=icons[doc.tipo]||'📄';var driveLink=convertDriveLink(doc.link);
+    var card=document.createElement('div');card.className='doc-card';
+    card.innerHTML='<div class="doc-card-top"><div class="doc-icon">'+icon+'</div><div style="flex:1;min-width:0"><div class="doc-title">'+doc.nombre+'</div><span class="doc-entidad">🏢 '+doc.entidad+'</span></div></div>'+(doc.desc?'<div class="doc-desc">'+doc.desc+'</div>':'')+'<div class="doc-meta"><span style="background:var(--cream-dark);padding:1px 7px;border-radius:4px;font-size:10px;margin-right:6px">'+doc.tipo+'</span>'+(doc.fecha?doc.fecha:'')+' · '+doc.agregadoPor+'</div><div class="doc-actions"><a class="doc-open" href="'+driveLink+'" target="_blank" onclick="logAction(\'pdf\',\'Abrió: '+doc.nombre+'\')">🔗 Abrir en Drive</a>'+(isAdminFlag?'<button class="doc-edit" onclick="editarDocumento('+realIdx+')" title="Editar">✏️</button><button class="doc-del" onclick="eliminarDocumento('+realIdx+')" title="Eliminar">🗑</button>':'')+'</div>';
+    grid.appendChild(card);
+  });
+}
+function convertDriveLink(url){if(!url)return'#';var m=url.match(/\/file\/d\/([^\/\?]+)/);if(m)return'https://drive.google.com/file/d/'+m[1]+'/view';return url;}
+function guardarDocumento(){
+  var nombre=document.getElementById('docNombre').value.trim(),entidad=document.getElementById('docEntidad').value,tipo=document.getElementById('docTipo').value,fecha=document.getElementById('docFecha').value,link=document.getElementById('docLink').value.trim(),desc=document.getElementById('docDesc').value.trim(),idx=parseInt(document.getElementById('docEditIdx').value);
+  var errEl=document.getElementById('docFormErr');
+  if(!nombre){errEl.textContent='Ingrese el nombre.';errEl.style.display='block';return;}
+  if(!entidad){errEl.textContent='Seleccione una entidad.';errEl.style.display='block';return;}
+  if(!link){errEl.textContent='Ingrese el link de Google Drive.';errEl.style.display='block';return;}
+  if(!link.startsWith('http')){errEl.textContent='El link debe comenzar con http.';errEl.style.display='block';return;}
+  errEl.style.display='none';
+  var fechaDisplay='';if(fecha){var p=fecha.split('-');fechaDisplay=p[2]+'/'+p[1]+'/'+p[0];}
+  var doc={nombre:nombre,entidad:entidad,tipo:tipo,fecha:fechaDisplay,link:link,desc:desc,agregadoPor:currentUser.name};
+  if(idx>=0){doc.agregadoPor=documentos[idx].agregadoPor;documentos[idx]=doc;logAction('pdf','Editó documento: '+nombre);showBanner('Documento actualizado ✓');}
+  else{documentos.push(doc);logAction('pdf','Registró documento: '+nombre);showBanner('Documento registrado ✓');}
+  cancelarEditDoc();renderDocumentos();
+}
+function editarDocumento(idx){
+  var d=documentos[idx];document.getElementById('docNombre').value=d.nombre;document.getElementById('docEntidad').value=d.entidad;document.getElementById('docTipo').value=d.tipo;document.getElementById('docLink').value=d.link;document.getElementById('docDesc').value=d.desc||'';
+  if(d.fecha){var p=d.fecha.split('/');if(p.length===3)document.getElementById('docFecha').value=p[2]+'-'+p[1]+'-'+p[0];}
+  document.getElementById('docEditIdx').value=idx;document.getElementById('btnCancelarDoc').style.display='inline-flex';document.getElementById('docNombre').focus();
+}
+function cancelarEditDoc(){document.getElementById('docNombre').value='';document.getElementById('docEntidad').value='';document.getElementById('docFecha').value='';document.getElementById('docLink').value='';document.getElementById('docDesc').value='';document.getElementById('docEditIdx').value='-1';document.getElementById('btnCancelarDoc').style.display='none';document.getElementById('docFormErr').style.display='none';}
+function eliminarDocumento(idx){if(!confirm('¿Eliminar "'+documentos[idx].nombre+'"?'))return;var nom=documentos[idx].nombre;documentos.splice(idx,1);logAction('pdf','Eliminó documento: '+nom);renderDocumentos();showBanner('Documento eliminado');}
+
+// ── PDF / EXCEL exports (vigencia, entidades, filtros, ficha) ──
+function exportarFichaPDF(){
+  function g(id){var el=document.getElementById(id);return el&&!el.classList.contains('empty')?el.textContent.trim():'—';}
+  var nombre=document.getElementById('f-nombre').textContent.trim(),rut=document.getElementById('f-rut-header').textContent.trim(),rol=document.getElementById('f-rol-badge').textContent.trim(),today=new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'long',year:'numeric'});
+  var isDir=rol.toLowerCase().indexOf('director')!==-1;var bg=isDir?'#0080c0':'#0080c0';var fg=isDir?'#fff':'#0d3460';
+  var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><title>Ficha '+nombre+'</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Inter,Arial,sans-serif;background:#fff;color:#1a202c;font-size:10.5pt;}.hdr{background:#0d3460;color:#fff;padding:20px 26px;}.sub{color:#00833e;font-size:7pt;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;}.htitle{font-size:17pt;margin-bottom:7px;font-weight:300;}.persona{display:flex;align-items:center;gap:10px;font-size:10.5pt;}.badge{padding:2px 10px;border-radius:20px;font-size:7.5pt;font-weight:600;letter-spacing:.5px;text-transform:uppercase;background:'+bg+';color:'+fg+';}.body{padding:18px 26px;}.sec{margin-bottom:16px;}.st{font-size:7pt;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#00833e;padding-bottom:5px;border-bottom:1.5px solid #dce4ed;margin-bottom:10px;}.g{display:grid;grid-template-columns:1fr 1fr;gap:9px 20px;}.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px 16px;}.fl{font-size:7pt;font-weight:600;letter-spacing:.5px;text-transform:uppercase;color:#6c7a89;margin-bottom:1px;}.fv{font-size:10pt;}.dv{height:1px;background:#dce4ed;margin:12px 0;}.foot{padding:9px 26px;background:#f0f4f8;border-top:1px solid #dce4ed;font-size:7.5pt;color:#6c7a89;margin-top:8px;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}</style></head><body><div class="hdr"><img src="https://www.superdesalud.gob.cl/app/themes/supersalud-bloom/assets/src/img/logo-super2020-negro.png" style="height:26px;width:auto;filter:brightness(0) invert(1);opacity:.85;display:block;margin-bottom:6px;" onerror="this.onerror=null;"><div class="sub">Registro SEOS · Sistema de Evaluadores Acreditados</div><div class="htitle">Ficha de Evaluador Acreditado</div><div class="persona"><span>'+nombre+' &nbsp;·&nbsp; '+rut+'</span><span class="badge">'+rol+'</span></div></div><div class="body"><div class="sec"><div class="st">Datos Personales</div><div class="g3"><div><div class="fl">RUT</div><div class="fv">'+rut+'</div></div><div><div class="fl">Edad</div><div class="fv">'+g('f-edad')+'</div></div><div><div class="fl">Región</div><div class="fv">'+g('f-region')+'</div></div></div></div><div class="dv"></div><div class="sec"><div class="st">Datos Profesionales</div><div class="g"><div><div class="fl">Profesión</div><div class="fv">'+g('f-profesion')+'</div></div><div><div class="fl">Mención</div><div class="fv">'+g('f-mencion')+'</div></div><div><div class="fl">N° de Registro</div><div class="fv">'+g('f-registro')+'</div></div></div></div><div class="dv"></div><div class="sec"><div class="st">Datos de Acreditación</div><div class="g"><div><div class="fl">Entidades Acreditadoras</div><div class="fv">'+g('f-entidades')+'</div></div><div><div class="fl">Tipo de Rol</div><div class="fv">'+g('f-rol')+'</div></div><div><div class="fl">Resultado del Examen</div><div class="fv">'+document.getElementById('f-resultado').textContent.trim()+'</div></div><div><div class="fl">N° Resolución</div><div class="fv">'+g('f-resolucion')+'</div></div><div><div class="fl">Fecha de Resolución</div><div class="fv">'+g('f-fecha')+'</div></div></div></div><div class="dv"></div><div class="sec"><div class="st">Experiencia</div><div class="g3"><div><div class="fl">Exclusivo / Compartido</div><div class="fv">'+g('f-exclusivo')+'</div></div><div><div class="fl">Años Exp. Clínica</div><div class="fv">'+g('f-experiencia')+'</div></div><div><div class="fl">Proyectos SEOS</div><div class="fv">'+g('f-proyectos')+'</div></div></div></div></div><div class="foot">Generado el '+today+' · '+currentUser.name+' · SEOS</div>'+'<'+'scr'+'ipt'+'>window.onload=function(){window.print();};<\/scr'+'ipt>'+'</body></html>';
+  var blob=new Blob([html],{type:'text/html;charset=utf-8'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='ficha_'+rut.replace(/\./g,'').replace('-','')+'.html';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},1000);
+  logAction('pdf','Exportó ficha PDF: '+nombre);
+}
+function exportarReporteExcel(){if(!filteredData.length){alert('No hay datos filtrados.');return;}var wb=XLSX.utils.book_new();var ws=XLSX.utils.json_to_sheet(filteredData);XLSX.utils.book_append_sheet(wb,ws,'Reporte');XLSX.writeFile(wb,'reporte_evaluadores_'+new Date().toISOString().slice(0,10)+'.xlsx');logAction('excel','Exportó reporte Excel ('+filteredData.length+')');showBanner('Excel exportado ✓');}
+function exportarReportePDF(){
+  if(!filteredData.length){alert('No hay datos filtrados.');return;}
+  var today=new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'long',year:'numeric'});
+  var hrow=FCOLS.map(function(c){return'<th>'+c.label+'</th>';}).join('');
+  var drows=filteredData.map(function(row,i){var cells=FCOLS.map(function(c){var val=getVal(row,c.kws)||'—';var st='';if(c.label==='Resultado'){if(val.toLowerCase().indexOf('aprobado')!==-1)st='color:#00833e;font-weight:500;';else if(val.toLowerCase().indexOf('reprobado')!==-1)st='color:#c0392b;font-weight:500;';}return'<td style="'+st+'">'+val+'</td>';}).join('');return'<tr'+(i%2===0?'':' class="alt"')+'>'+cells+'</tr>';}).join('');
+  var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><title>Reporte Evaluadores</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Inter,Arial,sans-serif;background:#fff;color:#1a202c;font-size:9pt;}.hdr{background:#0d3460;color:#fff;padding:16px 22px;}.sub{color:#00833e;font-size:6.5pt;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;}.htitle{font-size:15pt;font-weight:300;margin-bottom:3px;}.meta{font-size:8pt;color:rgba(255,255,255,.55);margin-top:4px;}.body{padding:14px 22px;}table{width:100%;border-collapse:collapse;font-size:8pt;}thead th{background:#0d3460;color:#fff;padding:7px 8px;text-align:left;font-weight:500;font-size:7pt;}tbody tr.alt{background:#f0f4f8;}tbody td{padding:6px 8px;border-bottom:1px solid #eee;}.foot{margin-top:12px;padding:8px 22px;background:#f0f4f8;border-top:1px solid #dce4ed;font-size:7pt;color:#6c7a89;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}@page{margin:1cm;size:A4 landscape;}}</style></head><body><div class="hdr"><img src="https://www.superdesalud.gob.cl/app/themes/supersalud-bloom/assets/src/img/logo-super2020-negro.png" style="height:26px;width:auto;filter:brightness(0) invert(1);opacity:.85;display:block;margin-bottom:6px;" onerror="this.onerror=null;"><div class="sub">Registro SEOS · Sistema de Evaluadores Acreditados</div><div class="htitle">Reporte de Evaluadores</div><div class="meta">Generado el '+today+' por '+currentUser.name+' · '+filteredData.length+' registro'+(filteredData.length!==1?'s':'')+'</div></div><div class="body"><table><thead><tr>'+hrow+'</tr></thead><tbody>'+drows+'</tbody></table></div><div class="foot">SEOS · '+today+'</div>'+'<'+'scr'+'ipt'+'>window.onload=function(){window.print();};<\/scr'+'ipt>'+'</body></html>';
+  var blob=new Blob([html],{type:'text/html;charset=utf-8'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='reporte_'+new Date().toISOString().slice(0,10)+'.html';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},1000);
+  logAction('pdf','Exportó reporte PDF ('+filteredData.length+')');
+}
+function exportarVigenciaPDF(){if(!database.length){alert('No hay datos.');return;}var filterVal=document.getElementById('vigFilter').value;var filterLabel={all:'Todos',expired:'Vencidos',expiring:'Por vencer',valid:'Vigentes'}[filterVal];var today=new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'long',year:'numeric'});var entidadValPDF=(document.getElementById('vigEntidad').value||'').toLowerCase().trim();var rows=database.filter(function(row){var info=getVigenciaStatus(getVal(row,['fecha']));if(filterVal!=='all'){if(!info||info.status!==filterVal)return false;}if(entidadValPDF){var e=getValLow(row,['entidad','acreditad']);if(e.indexOf(entidadValPDF)===-1)return false;}return true;});rows.sort(function(a,b){var order={expired:0,expiring:1,valid:2};var ia=getVigenciaStatus(getVal(a,['fecha'])),ib=getVigenciaStatus(getVal(b,['fecha']));return(ia?order[ia.status]:3)-(ib?order[ib.status]:3);});var drows=rows.map(function(row,i){var info=getVigenciaStatus(getVal(row,['fecha']));var estado='Sin fecha';var vence='—';var dias='—';var st='';if(info){vence=formatDateCL(info.expiry);dias=info.diffDays<0?'Hace '+Math.abs(info.diffDays)+' días':info.diffDays+' días';if(info.status==='expired'){estado='⛔ Vencida';st='color:#c0392b;';}else if(info.status==='expiring'){estado='⚠️ Por vencer';st='color:#9a6400;';}else{estado='✅ Vigente';st='color:#00833e;';}}return'<tr'+(i%2===0?'':' class="alt"')+'><td>'+getVal(row,['nombre'])+'</td><td>'+getVal(row,['rut'])+'</td><td>'+getVal(row,['profesión','profesion'])+'</td><td>'+getVal(row,['región','region'])+'</td><td>'+getVal(row,['fecha'])+'</td><td>'+vence+'</td><td style="'+st+'font-weight:500">'+estado+'</td><td style="'+st+'font-weight:500">'+dias+'</td></tr>';}).join('');var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><title>Reporte Vigencias</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Inter,Arial,sans-serif;background:#fff;color:#1a202c;font-size:9pt;}.hdr{background:#0d3460;color:#fff;padding:16px 22px;}.sub{color:#00833e;font-size:6.5pt;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;}.htitle{font-size:15pt;font-weight:300;margin-bottom:3px;}.meta{font-size:8pt;color:rgba(255,255,255,.55);margin-top:4px;}.body{padding:14px 22px;}table{width:100%;border-collapse:collapse;font-size:8.5pt;}thead th{background:#0d3460;color:#fff;padding:7px 8px;text-align:left;font-size:7.5pt;}tbody tr.alt{background:#f0f4f8;}tbody td{padding:6px 8px;border-bottom:1px solid #eee;}.foot{margin-top:12px;padding:8px 22px;background:#f0f4f8;border-top:1px solid #dce4ed;font-size:7pt;color:#6c7a89;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}@page{margin:1cm;size:A4 landscape;}}</style></head><body><div class="hdr"><img src="https://www.superdesalud.gob.cl/app/themes/supersalud-bloom/assets/src/img/logo-super2020-negro.png" style="height:26px;width:auto;filter:brightness(0) invert(1);opacity:.85;display:block;margin-bottom:6px;" onerror="this.onerror=null;"><div class="sub">Registro SEOS · Control de Vigencias</div><div class="htitle">Reporte de Vigencias · '+filterLabel+'</div><div class="meta">Generado el '+today+' · '+rows.length+' evaluador'+(rows.length!==1?'es':'')+'</div></div><div class="body"><table><thead><tr><th>Nombre</th><th>RUT</th><th>Profesión</th><th>Región</th><th>Fecha Res.</th><th>Vence el</th><th>Estado</th><th>Días</th></tr></thead><tbody>'+drows+'</tbody></table></div><div class="foot">SEOS · Vigencia: 3 años desde fecha de resolución · '+today+'</div>'+'<'+'scr'+'ipt'+'>window.onload=function(){window.print();};<\/scr'+'ipt>'+'</body></html>';var blob=new Blob([html],{type:'text/html;charset=utf-8'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='vigencias_'+filterVal+'_'+new Date().toISOString().slice(0,10)+'.html';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},1000);logAction('pdf','Exportó reporte vigencias PDF');}
+function exportarVigenciaExcel(){if(!database.length){alert('No hay datos.');return;}var filterVal=document.getElementById('vigFilter').value;var entidadValExp=(document.getElementById('vigEntidad').value||'').toLowerCase().trim();var rows=database.filter(function(row){var info=getVigenciaStatus(getVal(row,['fecha']));if(filterVal!=='all'){if(!info||info.status!==filterVal)return false;}if(entidadValExp){var e=getValLow(row,['entidad','acreditad']);if(e.indexOf(entidadValExp)===-1)return false;}return true;});var exportData=rows.map(function(row){var info=getVigenciaStatus(getVal(row,['fecha']));var obj={};Object.keys(row).forEach(function(k){obj[k]=row[k];});obj['Fecha vencimiento']=info?formatDateCL(info.expiry):'—';obj['Estado vigencia']=!info?'Sin fecha':info.status==='expired'?'Vencida':info.status==='expiring'?'Por vencer':'Vigente';obj['Días restantes']=info?(info.diffDays<0?'Hace '+Math.abs(info.diffDays)+' días':info.diffDays+' días'):'—';return obj;});var wb=XLSX.utils.book_new();var ws=XLSX.utils.json_to_sheet(exportData);XLSX.utils.book_append_sheet(wb,ws,'Vigencias');XLSX.writeFile(wb,'vigencias_'+filterVal+'_'+new Date().toISOString().slice(0,10)+'.xlsx');logAction('excel','Exportó Excel vigencias');showBanner('Excel vigencias exportado ✓');}
+function exportarEntidadesPDF(){var filterVal=document.getElementById('entFilter').value;var filterLabel={all:'Todas',expired:'Vencidas',expiring:'Por vencer',valid:'Vigentes'}[filterVal];var today=new Date().toLocaleDateString('es-CL',{day:'2-digit',month:'long',year:'numeric'});var rows=entidades.filter(function(e){if(filterVal==='all')return true;var info=getVigenciaEntidad(e.fecha);if(!info)return false;return info.status===filterVal;});rows.sort(function(a,b){var order={expired:0,expiring:1,valid:2};var ia=getVigenciaEntidad(a.fecha),ib=getVigenciaEntidad(b.fecha);return(ia?order[ia.status]:3)-(ib?order[ib.status]:3);});var drows=rows.map(function(e,i){var info=getVigenciaEntidad(e.fecha);var estado='Sin fecha';var vence='—';var dias='—';var st='';if(info){vence=formatDateCL(info.expiry);dias=info.diffDays<0?'Hace '+Math.abs(info.diffDays)+' días':info.diffDays+' días';if(info.status==='expired'){estado='⛔ Vencida';st='color:#c0392b;';}else if(info.status==='expiring'){estado='⚠️ Por vencer';st='color:#9a6400;';}else{estado='✅ Vigente';st='color:#00833e;';}}return'<tr'+(i%2===0?'':' class="alt"')+'><td>'+(i+1)+'</td><td style="font-weight:500">'+e.nombre+'</td><td>'+e.fecha+'</td><td>'+vence+'</td><td style="'+st+'font-weight:500">'+estado+'</td><td style="'+st+'font-weight:500">'+dias+'</td><td>'+(e.notas||'—')+'</td></tr>';}).join('');var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><title>Entidades</title><style>*{box-sizing:border-box;margin:0;padding:0;}body{font-family:Inter,Arial,sans-serif;background:#fff;color:#1a202c;font-size:9pt;}.hdr{background:#0d3460;color:#fff;padding:16px 22px;}.sub{color:#00833e;font-size:6.5pt;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;}.htitle{font-size:15pt;font-weight:300;margin-bottom:3px;}.meta{font-size:8pt;color:rgba(255,255,255,.55);margin-top:4px;}.body{padding:14px 22px;}table{width:100%;border-collapse:collapse;font-size:8.5pt;}thead th{background:#0d3460;color:#fff;padding:7px 8px;text-align:left;font-size:7.5pt;}tbody tr.alt{background:#f0f4f8;}tbody td{padding:6px 8px;border-bottom:1px solid #eee;}.foot{margin-top:12px;padding:8px 22px;background:#f0f4f8;border-top:1px solid #dce4ed;font-size:7pt;color:#6c7a89;}@media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}@page{margin:1cm;size:A4 landscape;}}</style></head><body><div class="hdr"><img src="https://www.superdesalud.gob.cl/app/themes/supersalud-bloom/assets/src/img/logo-super2020-negro.png" style="height:26px;width:auto;filter:brightness(0) invert(1);opacity:.85;display:block;margin-bottom:6px;" onerror="this.onerror=null;"><div class="sub">Registro SEOS · Entidades Acreditadoras</div><div class="htitle">Reporte de Entidades · '+filterLabel+'</div><div class="meta">Generado el '+today+' · '+rows.length+' entidad'+(rows.length!==1?'es':'')+'</div></div><div class="body"><table><thead><tr><th>N°</th><th>Entidad</th><th>Fecha Reautorización</th><th>Vence el</th><th>Estado</th><th>Días</th><th>Notas</th></tr></thead><tbody>'+drows+'</tbody></table></div><div class="foot">SEOS · Vigencia: 5 años · '+today+'</div>'+'<'+'scr'+'ipt'+'>window.onload=function(){window.print();};<\/scr'+'ipt>'+'</body></html>';var blob=new Blob([html],{type:'text/html;charset=utf-8'});var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='entidades_'+filterVal+'_'+new Date().toISOString().slice(0,10)+'.html';document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(function(){URL.revokeObjectURL(url);},1000);logAction('pdf','Exportó entidades PDF');}
+function exportarEntidadesExcel(){var filterVal=document.getElementById('entFilter').value;var rows=entidades.filter(function(e){if(filterVal==='all')return true;var info=getVigenciaEntidad(e.fecha);if(!info)return false;return info.status===filterVal;});var data=rows.map(function(e){var info=getVigenciaEntidad(e.fecha);return{'Entidad':e.nombre,'Fecha reautorización':e.fecha,'Vence el':info?formatDateCL(info.expiry):'—','Estado':!info?'Sin fecha':info.status==='expired'?'Vencida':info.status==='expiring'?'Por vencer':'Vigente','Días restantes':info?(info.diffDays<0?'Hace '+Math.abs(info.diffDays)+' días':info.diffDays+' días'):'—','Notas':e.notas||''};});var wb=XLSX.utils.book_new();var ws=XLSX.utils.json_to_sheet(data);XLSX.utils.book_append_sheet(wb,ws,'Entidades');XLSX.writeFile(wb,'entidades_'+filterVal+'_'+new Date().toISOString().slice(0,10)+'.xlsx');logAction('excel','Exportó entidades Excel');showBanner('Excel entidades exportado ✓');}
+
+// ══════════════════════════════════════════════
+// PROCESOS GLOBAL TAB
+// ══════════════════════════════════════════════
+function getAllProcesos(){
+  // Returns flat array {entidad, idx, proc}
+  var all=[];
+  entidades.forEach(function(ent){
+    (procesos[ent.nombre]||[]).forEach(function(p,i){
+      all.push({entidad:ent.nombre,idx:i,proc:p});
+    });
+  });
+  return all;
+}
+
+function renderProcesosGlobal(){
+  var isAdminFlag=isAdmin();
+
+  // Populate entidad filter
+  var sel=document.getElementById('pgFiltroEntidad');
+  var curSel=sel.value;
+  while(sel.options.length>1)sel.remove(1);
+  entidades.forEach(function(e){var o=document.createElement('option');o.value=e.nombre;o.textContent=e.nombre;sel.appendChild(o);});
+  if(curSel)sel.value=curSel;
+
+  // Populate entidad select in form
+  var fSel=document.getElementById('pgEntidad');
+  var curFSel=fSel.value;
+  while(fSel.options.length>1)fSel.remove(1);
+  entidades.forEach(function(e){var o=document.createElement('option');o.value=e.nombre;o.textContent=e.nombre;fSel.appendChild(o);});
+  if(curFSel)fSel.value=curFSel;
+
+  // Admin controls
+  var addBtn=document.getElementById('btnAddProcGlobal');
+  if(addBtn)addBtn.style.display=isAdminFlag?'inline-flex':'none';
+  var actHdr=document.getElementById('pgActHdr');
+  if(actHdr)actHdr.style.display=isAdminFlag?'':'none';
+
+  var fEnt=(document.getElementById('pgFiltroEntidad').value||'').toLowerCase();
+  var fRes=(document.getElementById('pgFiltroResultado').value||'').toLowerCase();
+  var fBus=(document.getElementById('pgFiltroBuscar').value||'').toLowerCase().trim();
+
+  var all=getAllProcesos();
+  var filtered=all.filter(function(item){
+    if(fEnt&&item.entidad.toLowerCase()!==fEnt)return false;
+    if(fRes&&(item.proc.resultado||'').toLowerCase()!==fRes)return false;
+    if(fBus&&(item.proc.nombre||'').toLowerCase().indexOf(fBus)===-1)return false;
+    return true;
+  });
+
+  document.getElementById('pgCount').textContent=filtered.length+' proceso'+(filtered.length!==1?'s':'');
+
+  var pgEmpty=document.getElementById('pgEmpty');
+  var pgNoMatch=document.getElementById('pgNoMatch');
+  var pgWrap=document.getElementById('pgTableWrap');
+
+  if(!all.length){pgEmpty.style.display='block';pgNoMatch.style.display='none';pgWrap.style.display='none';return;}
+  pgEmpty.style.display='none';
+  if(!filtered.length){pgNoMatch.style.display='block';pgWrap.style.display='none';return;}
+  pgNoMatch.style.display='none';pgWrap.style.display='block';
+
+  var tbody=document.getElementById('pgBody');
+  tbody.innerHTML=filtered.map(function(item,n){
+    var p=item.proc;
+    var res=p.resultado||'';
+    var resBadge='';
+    if(res==='Acreditado'){
+      resBadge='<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#e6f4ec;color:#006630"><span style="width:6px;height:6px;border-radius:50%;background:#00833e;display:inline-block"></span>Acreditado</span>';
+    }else if(res==='No acreditado'){
+      resBadge='<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#fdf0f0;color:#9b2335"><span style="width:6px;height:6px;border-radius:50%;background:#c0392b;display:inline-block"></span>No acreditado</span>';
+    }else if(res==='Acreditado con observaciones'){
+      resBadge='<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:600;background:#fff8e6;color:#7a5800"><span style="width:6px;height:6px;border-radius:50%;background:#f0a500;display:inline-block"></span>Acred. con obs.</span>';
+    }else{resBadge='<span style="color:var(--muted);font-size:11px">'+(res||'—')+'</span>';}
+    var evs=p.evaluadores||[];
+    var evHtml=evs.length?evs.map(function(ev){return'<span style="display:inline-block;background:#e8eef5;color:#0d3460;border-radius:20px;padding:1px 8px;font-size:10.5px;font-weight:500;margin:1px 2px;white-space:nowrap">'+ev+'</span>';}).join(''):'<span style="color:var(--muted);font-size:11px">—</span>';
+    var accs=isAdminFlag?'<div style="display:flex;gap:3px"><button class="rbtn" style="background:#e8eef8;color:#1a5276" onclick="editProcGlobal('+JSON.stringify(item.entidad)+','+item.idx+')" title="Editar">✏</button><button class="rbtn rbtn-del" onclick="delProcGlobal('+JSON.stringify(item.entidad)+','+item.idx+')" title="Eliminar">✕</button></div>':'';
+    return '<tr>'
+      +'<td class="tcell" style="color:var(--muted);font-size:11px">'+(n+1)+'</td>'
+      +'<td class="tcell" style="font-weight:500;color:var(--navy)">'+item.entidad+'</td>'
+      +'<td class="tcell" style="font-weight:500">'+p.nombre+'</td>'
+      +'<td class="tcell" style="font-family:monospace;font-size:11.5px;color:var(--navy);white-space:nowrap">'+(p.resolucion||'—')+'</td>'
+      +'<td class="tcell" style="white-space:nowrap">'+(p.fecha||'—')+'</td>'
+      +'<td class="tcell">'+evHtml+'</td>'
+      +'<td class="tcell">'+resBadge+'</td>'
+      +'<td class="tcell" style="font-size:11px;color:var(--muted)">'+(p.obs||'—')+'</td>'
+      +(isAdminFlag?'<td class="tcell">'+accs+'</td>':'')
+      +'</tr>';
+  }).join('');
+}
+
+function toggleProcGlobalForm(){
+  var f=document.getElementById('procGlobalForm');
+  var isOpen=f.classList.contains('visible');
+  if(isOpen){cancelarProcGlobal();}else{
+    f.classList.add('visible');
+    document.getElementById('pgFormTitle').textContent='Registrar proceso de acreditación';
+    document.getElementById('pgEditIdx').value='-1';
+    document.getElementById('pgEditEntidad').value='';
+    document.getElementById('pgNombre').focus();
+  }
+}
+
+function cancelarProcGlobal(){
+  ['pgNombre','pgResolucion','pgObs','pgEvaluadores'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('pgFecha').value='';
+  document.getElementById('pgResultado').value='';
+  document.getElementById('pgEditIdx').value='-1';
+  document.getElementById('pgEditEntidad').value='';
+  document.getElementById('pgFormErr').style.display='none';
+  document.getElementById('procGlobalForm').classList.remove('visible');
+  renderPgEvalTags();
+}
+
+function guardarProcesoGlobal(){
+  var entNom=document.getElementById('pgEntidad').value;
+  var nombre=document.getElementById('pgNombre').value.trim();
+  var resol=document.getElementById('pgResolucion').value.trim();
+  var fecha=document.getElementById('pgFecha').value;
+  var res=document.getElementById('pgResultado').value;
+  var obs=document.getElementById('pgObs').value.trim();
+  var evalVal=document.getElementById('pgEvaluadores').value;
+  var evaluadores=evalVal?evalVal.split('||').filter(function(s){return s.trim()!=='';}):[]; 
+  var editEnt=document.getElementById('pgEditEntidad').value;
+  var editIdx=parseInt(document.getElementById('pgEditIdx').value);
+  var errEl=document.getElementById('pgFormErr');
+
+  if(!entNom){errEl.textContent='Seleccione la entidad acreditadora.';errEl.style.display='inline';return;}
+  if(!nombre){errEl.textContent='Ingrese el nombre del prestador.';errEl.style.display='inline';return;}
+  if(!resol){errEl.textContent='Ingrese el N° de solicitud.';errEl.style.display='inline';return;}
+  errEl.style.display='none';
+
+  var fechaDisplay='';
+  if(fecha){var parts=fecha.split('-');fechaDisplay=parts[2]+'/'+parts[1]+'/'+parts[0];}
+  var proc={nombre:nombre,fecha:fechaDisplay,entidad:entNom,resultado:res,resolucion:resol,evaluadores:evaluadores,obs:obs,ingresadoPor:currentUser.name};
+
+  if(editIdx>=0&&editEnt){
+    if(!procesos[editEnt])procesos[editEnt]=[];
+    procesos[editEnt][editIdx]=proc;
+    // If entidad changed, move record
+    if(editEnt!==entNom){
+      procesos[editEnt].splice(editIdx,1);
+      if(!procesos[entNom])procesos[entNom]=[];
+      procesos[entNom].push(proc);
+    }
+    showBanner('Proceso actualizado ✓');
+    logAction('filter','Editó proceso: '+nombre);
+  } else {
+    if(!procesos[entNom])procesos[entNom]=[];
+    procesos[entNom].push(proc);
+    showBanner('Proceso registrado ✓');
+    logAction('filter','Registró proceso: '+nombre+' ('+entNom+')');
+  }
+  cancelarProcGlobal();
+  renderProcesosGlobal();
+}
+
+function editProcGlobal(entNom,idx){
+  var p=procesos[entNom][idx];
+  document.getElementById('pgEntidad').value=entNom;
+  document.getElementById('pgNombre').value=p.nombre||'';
+  document.getElementById('pgResolucion').value=p.resolucion||'';
+  if(p.fecha){var parts=p.fecha.split('/');if(parts.length===3)document.getElementById('pgFecha').value=parts[2]+'-'+parts[1]+'-'+parts[0];}
+  document.getElementById('pgResultado').value=p.resultado||'';
+  document.getElementById('pgObs').value=p.obs||'';
+  var evs=p.evaluadores||[];
+  document.getElementById('pgEvaluadores').value=evs.join('||');
+  renderPgEvalTags();
+  document.getElementById('pgEditEntidad').value=entNom;
+  document.getElementById('pgEditIdx').value=idx;
+  document.getElementById('pgFormTitle').textContent='Editar proceso de acreditación';
+  document.getElementById('procGlobalForm').classList.add('visible');
+  document.getElementById('pgNombre').focus();
+  document.getElementById('procGlobalForm').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function delProcGlobal(entNom,idx){
+  var p=procesos[entNom][idx];
+  if(!confirm('¿Eliminar el proceso de "'+p.nombre+'"?'))return;
+  procesos[entNom].splice(idx,1);
+  showBanner('Proceso eliminado');
+  renderProcesosGlobal();
+}
+
+// Tag helpers for global form
+function renderPgEvalTags(){
+  var val=document.getElementById('pgEvaluadores').value;
+  var evs=val?val.split('||').filter(function(s){return s.trim()!=='';}):[];
+  var wrap=document.getElementById('pgEvalTags');
+  if(!wrap)return;
+  wrap.innerHTML=evs.map(function(ev,i){
+    return '<span style="display:inline-flex;align-items:center;gap:4px;background:#e8eef5;color:#0d3460;border-radius:20px;padding:2px 10px;font-size:11.5px;font-weight:500">'
+      +ev+'<button type="button" onclick="removePgEval('+i+')" style="background:none;border:none;cursor:pointer;color:#6c7a89;font-size:12px;padding:0;line-height:1;margin-left:2px">×</button></span>';
+  }).join('');
+}
+function removePgEval(i){
+  var val=document.getElementById('pgEvaluadores').value;
+  var evs=val?val.split('||').filter(function(s){return s.trim()!=='';}):[];
+  evs.splice(i,1);
+  document.getElementById('pgEvaluadores').value=evs.join('||');
+  renderPgEvalTags();
+}
+function addPgEval(){
+  var inp=document.getElementById('pgEvalInput');
+  if(!inp)return;
+  var name=inp.value.trim();if(!name)return;
+  var val=document.getElementById('pgEvaluadores').value;
+  var evs=val?val.split('||').filter(function(s){return s.trim()!=='';}):[];
+  if(evs.indexOf(name)===-1)evs.push(name);
+  document.getElementById('pgEvaluadores').value=evs.join('||');
+  inp.value='';
+  renderPgEvalTags();
+}
+
+function exportarProcesosGlobalPDF(){
+  var all=getAllProcesos();
+  if(!all.length){alert('No hay procesos registrados.');return;}
+  var rows=all.map(function(item,n){
+    var p=item.proc;
+    return '<tr><td>'+(n+1)+'</td><td>'+item.entidad+'</td><td>'+p.nombre+'</td><td>'+(p.resolucion||'—')+'</td><td>'+(p.fecha||'—')+'</td><td>'+(p.evaluadores&&p.evaluadores.length?p.evaluadores.join(', '):'—')+'</td><td>'+(p.resultado||'—')+'</td><td>'+(p.obs||'—')+'</td></tr>';
+  }).join('');
+  var win=window.open('','_blank');
+  var html='<html><head><meta charset="UTF-8"><title>Procesos de Acreditación</title>'
+    +'<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">'
+    +'<style>body{font-family:Inter,sans-serif;font-size:11px;margin:32px}h1{color:#0d3460;font-size:16px;margin-bottom:4px}p{color:#6c7a89;font-size:11px;margin-bottom:20px}'
+    +'table{width:100%;border-collapse:collapse}th{background:#0d3460;color:#fff;padding:7px 9px;text-align:left;font-size:10px;font-weight:600}'
+    +'td{padding:6px 9px;border-bottom:1px solid #e0e8f0;vertical-align:top}'
+    +'tr:nth-child(even) td{background:#f5f8fc}'
+    +'</style></head><body>'
+    +'<img src="https://www.superdesalud.gob.cl/app/themes/supersalud-bloom/assets/src/img/logo-super2020-negro.png" style="height:36px;margin-bottom:12px">'
+    +'<h1>Procesos de Acreditación</h1>'
+    +'<p>Generado el '+new Date().toLocaleDateString('es-CL')+' · '+all.length+' proceso'+(all.length!==1?'s registrados':'s registrado')+'</p>'
+    +'<table><thead><tr><th>#</th><th>Entidad</th><th>Prestador</th><th>N° Solicitud</th><th>Fecha</th><th>Evaluadores</th><th>Resultado</th><th>Observaciones</th></tr></thead><tbody>'
+    +rows+'</tbody></table>'
+    +'<'+'scr'+'ipt'+'>window.onload=function(){window.print();}</'+'scri'+'pt'+'>'
+    +'</body></html>';
+  win.document.write(html);win.document.close();
+  logAction('pdf','Exportó PDF procesos global');
+}
+
+function exportarProcesosGlobalExcel(){
+  var all=getAllProcesos();
+  if(!all.length){alert('No hay procesos registrados.');return;}
+  var data=all.map(function(item){
+    var p=item.proc;
+    return{'Entidad Acreditadora':item.entidad,'Prestador':p.nombre,'N° Solicitud':p.resolucion||'','Fecha':p.fecha||'','Evaluadores en Terreno':(p.evaluadores||[]).join(', '),'Resultado':p.resultado||'','Observaciones':p.obs||''};
+  });
+  var wb=XLSX.utils.book_new();var ws=XLSX.utils.json_to_sheet(data);XLSX.utils.book_append_sheet(wb,ws,'Procesos');
+  XLSX.writeFile(wb,'procesos_acreditacion.xlsx');
+  showBanner('Excel descargado ✓');
+  logAction('excel','Exportó Excel procesos global');
+}
+</script>
+</body>
+</html>
